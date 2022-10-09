@@ -1,0 +1,16 @@
+{
+  "name": "Vision Extension",
+  "description": "You can decide which songs to listen to based on who chose them",
+  "version": "1.0",
+  "manifest_version": 3,
+  "permissions": ["storage"],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://music.youtube.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
