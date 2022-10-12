@@ -1,12 +1,12 @@
-import { closeIcon } from 'assets/close-icon';
 import { getPlaylistId } from 'functions';
 import { Playlist } from 'types/playlist';
 import { Song } from 'types/song';
 import { User } from 'types/user';
+import { Modal } from './Modal';
 
 export const StatisticsModal = (id: string) => {
-  const modal: HTMLDivElement = document.createElement('div');
-  const modalContent: HTMLDivElement = document.createElement('div');
+  const modal = Modal('75vh', '80%', id);
+  const modalContent = modal.firstElementChild!
   const statsContent: HTMLDivElement = document.createElement('div');
   const closeButton: HTMLDivElement = document.createElement('div');
   const tabsWrapper: HTMLDivElement = document.createElement('div');
@@ -16,36 +16,6 @@ export const StatisticsModal = (id: string) => {
   const playlist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
   const users: User[] = playlist.users || [];
   const songs: Song[] = playlist.songs || [];
-
-  modal.setAttribute('style',"backdrop-filter: blur(3px)")
-  modal.style.display = 'none';
-  modal.style.position = 'fixed';
-  modal.style.zIndex = '100';
-  modal.style.left = '0';
-  modal.style.top = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.overflow = 'hidden';
-  modal.id = id;
-
-  modalContent.style.backgroundColor = '#030303';
-  modalContent.style.margin = '5vh auto';
-  modalContent.style.padding = '20px';
-  modalContent.style.border = '1px solid #888';
-  modalContent.style.width = '80%';
-  modalContent.style.overflow = 'auto';
-  modalContent.style.height = '75vh';
-  modalContent.style.transitionProperty = 'margin';
-  modalContent.style.transitionDuration = '0.3s';
-  modalContent.id = `${id}-content`;
-
-  closeButton.style.position = 'relative';
-  closeButton.style.zIndex = '300';
-  closeButton.style.left = '0';
-  closeButton.style.top = '0';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.width = 'fit-content';
-  closeButton.innerHTML = closeIcon;
 
   tabsWrapper.style.width = '100%';
   tabsWrapper.style.display = 'flex';
@@ -172,24 +142,11 @@ export const StatisticsModal = (id: string) => {
 
   renderTabs();
 
-  closeButton.addEventListener('click', () => {
-    modal.style.display = 'none';
-    modalContent.style.margin = '5vh auto';
-    document.querySelector('body')!.removeChild(modal);
-  });
-
-  window.onclick = (event) => {
-    if (!(event.target === modal)) return;
-
-    modal.style.display = 'none';
-    modalContent.style.margin = '5vh auto';
-    document.querySelector('body')!.removeChild(modal);
-  };
-
   tabs.forEach((tab) => tabsWrapper.append(tab));
   modalContent.prepend(tabsWrapper);
   modalContent.prepend(closeButton);
-  modal.appendChild(modalContent);
+  modal.replaceChild(modalContent ,modal.firstElementChild!);
+
 
   return modal;
 };

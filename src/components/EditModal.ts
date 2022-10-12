@@ -1,41 +1,11 @@
-import { closeIcon } from 'assets/close-icon';
+import { Modal } from './Modal';
 
 export const EditModal = (id: string, placeholder: string, inputAction: (ev: Event) => any): HTMLDivElement => {
-  const modal: HTMLDivElement = document.createElement('div');
-  const modalContent: HTMLDivElement = document.createElement('div');
+  const modal = Modal('25vh', '50%', id);
+  const modalContent = modal.firstElementChild!
   const closeButton: HTMLDivElement = document.createElement('div');
   const inputBox: HTMLDivElement = document.createElement('div');
   const inputField: HTMLInputElement = document.createElement('input');
-
-  modal.setAttribute('style',"backdrop-filter: blur(3px)")
-  modal.style.display = 'none';
-  modal.style.position = 'fixed';
-  modal.style.zIndex = '100';
-  modal.style.left = '0';
-  modal.style.top = '0';
-  modal.style.width = '100%';
-  modal.style.height = '100%';
-  modal.style.overflow = 'hidden';
-  modal.id = id;
-
-  modalContent.style.backgroundColor = '#030303';
-  modalContent.style.margin = '5vh auto';
-  modalContent.style.padding = '20px';
-  modalContent.style.border = '1px solid #888';
-  modalContent.style.width = '50%';
-  modalContent.style.overflow = 'auto';
-  modalContent.style.height = '25vh';
-  modalContent.style.transitionProperty = 'margin';
-  modalContent.style.transitionDuration = '0.3s';
-  modalContent.id = `${id}-content`;
-
-  closeButton.style.position = 'relative';
-  closeButton.style.zIndex = '300';
-  closeButton.style.left = '0';
-  closeButton.style.top = '0';
-  closeButton.style.cursor = 'pointer';
-  closeButton.style.width = 'fit-content';
-  closeButton.innerHTML = closeIcon;
 
   inputBox.classList.add('search-box');
   inputBox.classList.add('style-scope');
@@ -50,22 +20,10 @@ export const EditModal = (id: string, placeholder: string, inputAction: (ev: Eve
   inputField.style.color = 'white';
   inputField.addEventListener('input', inputAction);
 
-  closeButton.addEventListener('click', () => {
-    modal.style.display = 'none';
-    modalContent.style.margin = '5vh auto';
-  });
-
-  window.onclick = (event) => {
-    if (!(event.target === modal)) return;
-
-    modal.style.display = 'none';
-    modalContent.style.margin = '5vh auto';
-  };
-
   inputBox.append(inputField);
   modalContent.append(closeButton);
   modalContent.append(inputBox);
-  modal.appendChild(modalContent);
+  modal.replaceChild(modalContent ,modal.firstElementChild!);
 
   return modal;
 };
