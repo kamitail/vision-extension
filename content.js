@@ -65,7 +65,6 @@ const closeIcon = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000
 </svg>`;
 
 const Modal = (height, width, id) => {
-    document.querySelector('body').style.overflow = 'hidden';
     const modal = document.createElement('div');
     const modalContent = document.createElement('div');
     const closeButton = document.createElement('div');
@@ -573,6 +572,7 @@ const returnToTop = () => {
     window.scrollTo(0, 0);
 };
 const showModal = (id) => {
+    document.querySelector('body').style.overflow = 'hidden';
     document.getElementById(id).style.display = 'block';
     setTimeout(() => {
         document.getElementById(`${id}-content`).style.margin = '10vh auto';
