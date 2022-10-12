@@ -8,7 +8,6 @@ export const StatisticsModal = (id: string) => {
   const modal = Modal('75vh', '80%', id);
   const modalContent = modal.firstElementChild!
   const statsContent: HTMLDivElement = document.createElement('div');
-  const closeButton: HTMLDivElement = document.createElement('div');
   const tabsWrapper: HTMLDivElement = document.createElement('div');
   const tabs: HTMLDivElement[] = [1, 2].map(() => document.createElement('div'));
 
@@ -144,9 +143,6 @@ export const StatisticsModal = (id: string) => {
 
   tabs.forEach((tab) => tabsWrapper.append(tab));
   modalContent.prepend(tabsWrapper);
-  modalContent.prepend(closeButton);
-  modal.replaceChild(modalContent ,modal.firstElementChild!);
-
 
   return modal;
 };
