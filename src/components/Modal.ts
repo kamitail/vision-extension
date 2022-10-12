@@ -1,6 +1,8 @@
 import { closeIcon } from 'assets/close-icon';
 
 export const Modal = (height: string, width: string, id: string): HTMLDivElement => {
+  document.querySelector('body')!.style.overflow = 'hidden';
+
   const modal: HTMLDivElement = document.createElement('div');
   const modalContent: HTMLDivElement = document.createElement('div');
   const closeButton: HTMLDivElement = document.createElement('div');
@@ -36,6 +38,7 @@ export const Modal = (height: string, width: string, id: string): HTMLDivElement
   closeButton.innerHTML = closeIcon;
 
   const closeModal = () => {
+    document.querySelector('body')!.style.overflow = 'visible';
     modal.style.display = 'none';
     modalContent.style.margin = '5vh auto';
     document.querySelector('body')!.removeChild(modal);
