@@ -70,6 +70,7 @@ const EditModal = (id, placeholder, inputAction) => {
     const closeButton = document.createElement('div');
     const inputBox = document.createElement('div');
     const inputField = document.createElement('input');
+    modal.setAttribute('style',"backdrop-filter: blur(3px)")
     modal.style.display = 'none';
     modal.style.position = 'fixed';
     modal.style.zIndex = '100';
@@ -78,9 +79,8 @@ const EditModal = (id, placeholder, inputAction) => {
     modal.style.width = '100%';
     modal.style.height = '100%';
     modal.style.overflow = 'hidden';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
     modal.id = id;
-    modalContent.style.backgroundColor = '#030303d9';
+    modalContent.style.backgroundColor = '#030303';
     modalContent.style.margin = '5vh auto';
     modalContent.style.padding = '20px';
     modalContent.style.border = '1px solid #888';
@@ -223,6 +223,7 @@ const StatisticsModal = (id) => {
     const playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
     const users = playlist.users || [];
     const songs = playlist.songs || [];
+    modal.setAttribute('style',"backdrop-filter: blur(3px)")
     modal.style.display = 'none';
     modal.style.position = 'fixed';
     modal.style.zIndex = '100';
@@ -231,9 +232,8 @@ const StatisticsModal = (id) => {
     modal.style.width = '100%';
     modal.style.height = '100%';
     modal.style.overflow = 'hidden';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
     modal.id = id;
-    modalContent.style.backgroundColor = '#030303d9';
+    modalContent.style.backgroundColor = '#030303';
     modalContent.style.margin = '5vh auto';
     modalContent.style.padding = '20px';
     modalContent.style.border = '1px solid #888';
@@ -508,6 +508,7 @@ const UsersModal = (id, users, saveUsersState) => {
     const modal = document.createElement('div');
     const modalContent = document.createElement('div');
     const closeButton = document.createElement('div');
+    modal.setAttribute('style',"backdrop-filter: blur(3px)")
     modal.style.display = 'none';
     modal.style.position = 'fixed';
     modal.style.zIndex = '100';
@@ -516,9 +517,8 @@ const UsersModal = (id, users, saveUsersState) => {
     modal.style.width = '100%';
     modal.style.height = '100%';
     modal.style.overflow = 'hidden';
-    modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
     modal.id = id;
-    modalContent.style.backgroundColor = '#030303d9';
+    modalContent.style.backgroundColor = '#030303';
     modalContent.style.margin = '5vh auto';
     modalContent.style.padding = '20px';
     modalContent.style.border = '1px solid #888';

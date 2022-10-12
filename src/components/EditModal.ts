@@ -7,6 +7,7 @@ export const EditModal = (id: string, placeholder: string, inputAction: (ev: Eve
   const inputBox: HTMLDivElement = document.createElement('div');
   const inputField: HTMLInputElement = document.createElement('input');
 
+  modal.setAttribute('style',"backdrop-filter: blur(3px)")
   modal.style.display = 'none';
   modal.style.position = 'fixed';
   modal.style.zIndex = '100';
@@ -15,10 +16,9 @@ export const EditModal = (id: string, placeholder: string, inputAction: (ev: Eve
   modal.style.width = '100%';
   modal.style.height = '100%';
   modal.style.overflow = 'hidden';
-  modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
   modal.id = id;
 
-  modalContent.style.backgroundColor = '#030303d9';
+  modalContent.style.backgroundColor = '#030303';
   modalContent.style.margin = '5vh auto';
   modalContent.style.padding = '20px';
   modalContent.style.border = '1px solid #888';

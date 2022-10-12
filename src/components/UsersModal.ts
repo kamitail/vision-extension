@@ -7,6 +7,7 @@ export const UsersModal = (id: string, users: User[], saveUsersState: () => void
   const modalContent: HTMLDivElement = document.createElement('div');
   const closeButton: HTMLDivElement = document.createElement('div');
 
+  modal.setAttribute('style',"backdrop-filter: blur(3px)")
   modal.style.display = 'none';
   modal.style.position = 'fixed';
   modal.style.zIndex = '100';
@@ -15,7 +16,6 @@ export const UsersModal = (id: string, users: User[], saveUsersState: () => void
   modal.style.width = '100%';
   modal.style.height = '100%';
   modal.style.overflow = 'hidden';
-  modal.style.backgroundColor = 'rgba(0,0,0,0.4)';
   modal.id = id;
 
   modalContent.style.backgroundColor = '#030303d9';
