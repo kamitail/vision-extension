@@ -6,13 +6,12 @@ export const UsersModal = (id: string, users: User[], saveUsersState: () => void
   const modal = Modal('75vh', '20%', id);
   const modalContent = modal.firstElementChild!
 
+
   modalContent.appendChild(
     UsersCheckList(id, users, () => {
       saveUsersState();
     }),
   );
-
-  modal.replaceChild(modalContent ,modal.firstElementChild!);
 
   return modal;
 };

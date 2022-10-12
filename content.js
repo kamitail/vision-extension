@@ -65,6 +65,7 @@ const closeIcon = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000
 </svg>`;
 
 const Modal = (height, width, id) => {
+    document.querySelector('body').style.overflow = 'hidden';
     const modal = document.createElement('div');
     const modalContent = document.createElement('div');
     const closeButton = document.createElement('div');
@@ -96,6 +97,7 @@ const Modal = (height, width, id) => {
     closeButton.style.width = 'fit-content';
     closeButton.innerHTML = closeIcon;
     const closeModal = () => {
+        document.querySelector('body').style.overflow = 'visible';
         modal.style.display = 'none';
         modalContent.style.margin = '5vh auto';
         document.querySelector('body').removeChild(modal);
@@ -478,7 +480,6 @@ const UsersModal = (id, users, saveUsersState) => {
     modalContent.appendChild(UsersCheckList(id, users, () => {
         saveUsersState();
     }));
-    modal.replaceChild(modalContent, modal.firstElementChild);
     return modal;
 };
 
