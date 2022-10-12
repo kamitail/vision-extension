@@ -64,13 +64,11 @@ const closeIcon = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000
 </g>
 </svg>`;
 
-const EditModal = (id, placeholder, inputAction) => {
+const Modal = (height, width, id) => {
     const modal = document.createElement('div');
     const modalContent = document.createElement('div');
     const closeButton = document.createElement('div');
-    const inputBox = document.createElement('div');
-    const inputField = document.createElement('input');
-    modal.setAttribute('style',"backdrop-filter: blur(3px)")
+    modal.setAttribute('style', 'backdrop-filter: blur(3px)');
     modal.style.display = 'none';
     modal.style.position = 'fixed';
     modal.style.zIndex = '100';
@@ -84,9 +82,9 @@ const EditModal = (id, placeholder, inputAction) => {
     modalContent.style.margin = '5vh auto';
     modalContent.style.padding = '20px';
     modalContent.style.border = '1px solid #888';
-    modalContent.style.width = '50%';
+    modalContent.style.width = width;
     modalContent.style.overflow = 'auto';
-    modalContent.style.height = '25vh';
+    modalContent.style.height = height;
     modalContent.style.transitionProperty = 'margin';
     modalContent.style.transitionDuration = '0.3s';
     modalContent.id = `${id}-content`;
@@ -97,6 +95,28 @@ const EditModal = (id, placeholder, inputAction) => {
     closeButton.style.cursor = 'pointer';
     closeButton.style.width = 'fit-content';
     closeButton.innerHTML = closeIcon;
+    const closeModal = () => {
+        modal.style.display = 'none';
+        modalContent.style.margin = '5vh auto';
+        document.querySelector('body').removeChild(modal);
+    };
+    closeButton.addEventListener('click', closeModal);
+    window.onclick = (event) => {
+        if (!(event.target === modal))
+            return;
+        closeModal();
+    };
+    modalContent.append(closeButton);
+    modal.appendChild(modalContent);
+    return modal;
+};
+
+const EditModal = (id, placeholder, inputAction) => {
+    const modal = Modal('25vh', '50%', id);
+    const modalContent = modal.firstElementChild;
+    const closeButton = document.createElement('div');
+    const inputBox = document.createElement('div');
+    const inputField = document.createElement('input');
     inputBox.classList.add('search-box');
     inputBox.classList.add('style-scope');
     inputBox.classList.add('ytmusic-search-box');
@@ -108,20 +128,10 @@ const EditModal = (id, placeholder, inputAction) => {
     inputField.placeholder = placeholder;
     inputField.style.color = 'white';
     inputField.addEventListener('input', inputAction);
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-        modalContent.style.margin = '5vh auto';
-    });
-    window.onclick = (event) => {
-        if (!(event.target === modal))
-            return;
-        modal.style.display = 'none';
-        modalContent.style.margin = '5vh auto';
-    };
     inputBox.append(inputField);
     modalContent.append(closeButton);
     modalContent.append(inputBox);
-    modal.appendChild(modalContent);
+    modal.replaceChild(modalContent, modal.firstElementChild);
     return modal;
 };
 
@@ -213,43 +223,15 @@ const isSongUserChecked = (users, currSong) => users.some((user) => user.isCheck
 const formatUsers = (usernames, users) => users.map(({ name }) => ({ name, isChecked: usernames.includes(name) }));
 
 const StatisticsModal = (id) => {
-    const modal = document.createElement('div');
-    const modalContent = document.createElement('div');
+    const modal = Modal('75vh', '80%', id);
+    const modalContent = modal.firstElementChild;
     const statsContent = document.createElement('div');
-    const closeButton = document.createElement('div');
     const tabsWrapper = document.createElement('div');
     const tabs = [1, 2].map(() => document.createElement('div'));
     let currTabIndex = 0;
     const playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
     const users = playlist.users || [];
     const songs = playlist.songs || [];
-    modal.setAttribute('style',"backdrop-filter: blur(3px)")
-    modal.style.display = 'none';
-    modal.style.position = 'fixed';
-    modal.style.zIndex = '100';
-    modal.style.left = '0';
-    modal.style.top = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.overflow = 'hidden';
-    modal.id = id;
-    modalContent.style.backgroundColor = '#030303';
-    modalContent.style.margin = '5vh auto';
-    modalContent.style.padding = '20px';
-    modalContent.style.border = '1px solid #888';
-    modalContent.style.width = '80%';
-    modalContent.style.overflow = 'auto';
-    modalContent.style.height = '75vh';
-    modalContent.style.transitionProperty = 'margin';
-    modalContent.style.transitionDuration = '0.3s';
-    modalContent.id = `${id}-content`;
-    closeButton.style.position = 'relative';
-    closeButton.style.zIndex = '300';
-    closeButton.style.left = '0';
-    closeButton.style.top = '0';
-    closeButton.style.cursor = 'pointer';
-    closeButton.style.width = 'fit-content';
-    closeButton.innerHTML = closeIcon;
     tabsWrapper.style.width = '100%';
     tabsWrapper.style.display = 'flex';
     tabsWrapper.style.justifyContent = 'center';
@@ -353,22 +335,8 @@ const StatisticsModal = (id) => {
         }
     });
     renderTabs();
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-        modalContent.style.margin = '5vh auto';
-        document.querySelector('body').removeChild(modal);
-    });
-    window.onclick = (event) => {
-        if (!(event.target === modal))
-            return;
-        modal.style.display = 'none';
-        modalContent.style.margin = '5vh auto';
-        document.querySelector('body').removeChild(modal);
-    };
     tabs.forEach((tab) => tabsWrapper.append(tab));
     modalContent.prepend(tabsWrapper);
-    modalContent.prepend(closeButton);
-    modal.appendChild(modalContent);
     return modal;
 };
 
@@ -505,51 +473,12 @@ const UsersCheckList = (listName, users, saveUsersState) => {
 };
 
 const UsersModal = (id, users, saveUsersState) => {
-    const modal = document.createElement('div');
-    const modalContent = document.createElement('div');
-    const closeButton = document.createElement('div');
-    modal.setAttribute('style',"backdrop-filter: blur(3px)")
-    modal.style.display = 'none';
-    modal.style.position = 'fixed';
-    modal.style.zIndex = '100';
-    modal.style.left = '0';
-    modal.style.top = '0';
-    modal.style.width = '100%';
-    modal.style.height = '100%';
-    modal.style.overflow = 'hidden';
-    modal.id = id;
-    modalContent.style.backgroundColor = '#030303';
-    modalContent.style.margin = '5vh auto';
-    modalContent.style.padding = '20px';
-    modalContent.style.border = '1px solid #888';
-    modalContent.style.width = '20%';
-    modalContent.style.overflow = 'auto';
-    modalContent.style.height = '75vh';
-    modalContent.style.transitionProperty = 'margin';
-    modalContent.style.transitionDuration = '0.3s';
-    modalContent.id = `${id}-content`;
-    closeButton.style.position = 'relative';
-    closeButton.style.zIndex = '300';
-    closeButton.style.left = '0';
-    closeButton.style.top = '0';
-    closeButton.style.cursor = 'pointer';
-    closeButton.style.width = 'fit-content';
-    closeButton.innerHTML = closeIcon;
-    closeButton.addEventListener('click', () => {
-        modal.style.display = 'none';
-        modalContent.style.margin = '5vh auto';
-    });
-    window.onclick = (event) => {
-        if (!(event.target === modal))
-            return;
-        modal.style.display = 'none';
-        modalContent.style.margin = '5vh auto';
-    };
-    modalContent.append(closeButton);
+    const modal = Modal('75vh', '20%', id);
+    const modalContent = modal.firstElementChild;
     modalContent.appendChild(UsersCheckList(id, users, () => {
         saveUsersState();
     }));
-    modal.appendChild(modalContent);
+    modal.replaceChild(modalContent, modal.firstElementChild);
     return modal;
 };
 

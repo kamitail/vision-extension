@@ -50,6 +50,7 @@ export const Modal = (height: string, width: string, id: string): HTMLDivElement
   };
 
   modalContent.append(closeButton);
+  modal.appendChild(modalContent);
 
   return modal;
 };
