@@ -97,7 +97,8 @@ const returnToTop = () => {
   window.scrollTo(0, 0);
 };
 
-const showModal = (id: string) => {
+const showModal =  (id: string) => {
+  document.querySelector('body')!.style.overflow = 'hidden';
   document.getElementById(id)!.style.display = 'block';
 
   setTimeout(() => {
