@@ -4,10 +4,12 @@ import { syncIcon } from 'assets/sync-icon';
 import { usersIcon } from 'assets/users-icon';
 import { EditModal } from 'components/EditModal';
 import { QueueRow } from 'components/QueueRow';
+import { QueueTab } from 'components/QueueTab';
 import { StatisticsModal } from 'components/StatisticsModal';
 import { TooltipItem } from 'components/TooltipItem';
+import { UsersCheckList } from 'components/UsersCheckList';
 import { UsersModal } from 'components/UsersModal';
-import { PLAYLIST_API_ENDPOINT } from 'constants';
+import { PLAYLIST_API_ENDPOINT, USERS_TAB_INDEX } from 'constants';
 import { styles } from 'styles';
 import { User } from 'types/user';
 import { FloatButton } from './components/FloatButton';
@@ -42,6 +44,9 @@ let queueSongInAction: Song;
 let songElementInAction: Element;
 let playlistId: string;
 let localPlaylist: Playlist;
+let songPageTabIndex: number = 0;
+let areSongPageUsersRelevant: boolean = true;
+let arePlaylistPageUsersRelevant: boolean = true;
 
 const getToBottom = () => {
   getToBottomInterval = setInterval(() => window.scrollTo(0, document.body.scrollHeight), 1000);
@@ -213,6 +218,12 @@ const syncMusic = () => {
   const localSongs: Song[] = localPlaylist?.songs || [];
   const localUsers: User[] = localPlaylist?.users || [];
   const formattedSongsElements: Song[] = formatSongsElements(songsElements, localSongs);
+
+  if ((localPlaylist?.songs || []).length > formatSongsElements.length) {
+    alert("You didn't collect enough songs");
+    return;
+  }
+
   const songsUsers: User[] = getSongsUsers(formattedSongsElements, localUsers);
   localPlaylist = { ...localPlaylist, songs: formattedSongsElements, users: songsUsers };
 
@@ -330,10 +341,75 @@ setInterval(() => {
 
   if (isSongsPage(pageUrl)) {
     const localUsers: User[] = localPlaylist?.users || [];
+    const selectionBar: HTMLElement = document.getElementById('selectionBar')!;
 
     if (!document.getElementsByClassName('video-size')) {
       const mainPanel: HTMLElement = document.getElementById('main-panel')!;
       mainPanel.classList.add('video-size');
+    }
+
+    if (
+      !!localUsers.length &&
+      !document.getElementById('songs-page-users') &&
+      !!document.getElementById('side-panel-id')
+    ) {
+      const songsPageUsers: HTMLDivElement = UsersCheckList('songs-page-users', localUsers, () => {
+        saveUsersState('songs-page-users');
+        arePlaylistPageUsersRelevant = false;
+      });
+
+      const usersWrapper: HTMLDivElement = document.createElement('div');
+      usersWrapper.classList.add('scroller');
+      usersWrapper.classList.add('scroller-on-hover');
+      usersWrapper.classList.add('style-scope');
+      usersWrapper.classList.add('ytmusic-player-page');
+      usersWrapper.append(songsPageUsers);
+      usersWrapper.id = 'users-wrapper';
+
+      songsPageUsers.style.display = 'none';
+      document.getElementById('side-panel-id')!.append(usersWrapper);
+    }
+
+    if (
+      !areSongPageUsersRelevant &&
+      !!document.getElementById('users-wrapper') &&
+      document.getElementById('users-wrapper')?.contains(document.getElementById('songs-page-users'))
+    ) {
+      const songsPageUsers: HTMLDivElement = UsersCheckList('songs-page-users', localUsers, () => {
+        saveUsersState('songs-page-users');
+        arePlaylistPageUsersRelevant = false;
+      });
+
+      songsPageUsers.style.display = document.getElementById('songs-page-users')!.style.display;
+      areSongPageUsersRelevant = true;
+      document.getElementById('users-wrapper')!.removeChild(document.getElementById('songs-page-users')!);
+      document.getElementById('users-wrapper')!.append(songsPageUsers);
+    }
+
+    if (!document.getElementById('tab-users-management') && !!document.querySelectorAll('tp-yt-paper-tab')[1]) {
+      document.querySelectorAll('tp-yt-paper-tab')[1].after(QueueTab('tab-users-management'));
+      document.getElementById('tab-users-management')!.innerHTML = 'USERS';
+      const tabsLength: number = document.querySelectorAll('tp-yt-paper-tab').length;
+
+      const renderTabs = () =>
+        (document.querySelectorAll('tp-yt-paper-tab') as NodeListOf<HTMLElement>).forEach(
+          (tab: HTMLElement, index: number) => {
+            tab.style.color = index === songPageTabIndex ? 'white' : 'rgb(171 171 171)';
+
+            tab.addEventListener('click', () => {
+              songPageTabIndex = index;
+              selectionBar.style.transform = `translateX(${index * (100 / tabsLength)}%) scaleX(${1 / tabsLength})`;
+              document.getElementById('songs-page-users')!.style.display = index === USERS_TAB_INDEX ? 'block' : 'none';
+
+              (document.querySelector('ytmusic-tab-renderer') as HTMLElement).style.display =
+                index === USERS_TAB_INDEX ? 'none' : 'block';
+
+              renderTabs();
+            });
+          },
+        );
+
+      renderTabs();
     }
 
     if (!!document.querySelector('tp-yt-paper-listbox')) {
@@ -366,6 +442,7 @@ setInterval(() => {
 setInterval(() => {
   const pageUrl = location.href;
   const localSongs: Song[] = localPlaylist?.songs || [];
+  const localUsers: User[] = localPlaylist?.users || [];
 
   if (isPlaylistPage(location.href)) {
     if (!document.getElementsByClassName('animeme').length && !!document.getElementById('img')) {
@@ -453,12 +530,22 @@ setInterval(() => {
         ),
       );
 
-    !document.getElementById('users-modal') &&
+    !!localUsers.length &&
+      !document.getElementById('users-modal') &&
       document.querySelector('body')!.appendChild(
         UsersModal('users-modal', localPlaylist?.users || [], () => {
           saveUsersState('users-modal');
+          areSongPageUsersRelevant = false;
         }),
       );
+
+    if (
+      !arePlaylistPageUsersRelevant &&
+      document.querySelector('body')!.contains(document.getElementById('users-modal')!)
+    ) {
+      arePlaylistPageUsersRelevant = true;
+      document.querySelector('body')!.removeChild(document.getElementById('users-modal')!);
+    }
 
     if (
       !!localPlaylist?.songs?.length &&
