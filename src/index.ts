@@ -612,6 +612,8 @@ setInterval(() => {
         .getElementsByTagName('ytmusic-player-queue-item');
 
       [...queueSongs].forEach((song: Element) => {
+        (song as any).attributes.selected && ((song as any).style.backgroundColor = '#831e1e');
+
         const songName: string | undefined = (song?.getElementsByClassName('song-title')?.[0] as HTMLElement)
           ?.innerText;
 
@@ -624,6 +626,13 @@ setInterval(() => {
 
         const rowText: string = (sameLocalSong?.users || []).join(', ');
 
+        const isSongShouldPlay: boolean = !(
+          !!sameLocalSong &&
+          (sameLocalSong.isHeard || !isSongUserChecked(localUsers, sameLocalSong))
+        );
+        (song as HTMLElement).style.opacity = isSongShouldPlay ? '1' : '0.3';
+        (song as HTMLElement).style.fontStyle = isSongShouldPlay ? 'normal' : 'italic';
+
         if (
           !!song?.getElementsByClassName('kuwewe-row')?.length &&
           song.getElementsByClassName('song-info')[0].getElementsByClassName('kuwewe-row')[0].innerHTML === rowText
@@ -633,7 +642,7 @@ setInterval(() => {
         (song as HTMLElement).style.height = '75px';
         (song as HTMLElement).style.cssText += '--ytmusic-player-queue-item-thumbnail-size:60px;';
 
-        sameLocalSong &&
+        !!sameLocalSong &&
           song
             .querySelector('ytmusic-menu-renderer')!
             .querySelector('tp-yt-paper-icon-button')!
