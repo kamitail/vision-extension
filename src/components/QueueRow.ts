@@ -16,7 +16,7 @@ export const QueueRow = () => {
   row.addEventListener('click', (ev) => {
     ev.preventDefault();
 
-    console.log('hello');
+    alert('ש"צ');
   });
 
   return row;

@@ -3,7 +3,9 @@ import { QueueRow } from 'components/QueueRow';
 import { StatisticsModal } from 'components/StatisticsModal';
 import { TooltipItem } from 'components/TooltipItem';
 import { UsersModal } from 'components/UsersModal';
+import { PLAYLIST_API_ENDPOINT } from 'constants';
 import { last } from 'functions/generic-use';
+import { styles } from 'styles';
 import { User } from 'types/user';
 import { FloatButton } from './components/FloatButton';
 import { StyledButton } from './components/StyledButton';
@@ -14,6 +16,7 @@ import {
   formatUsers,
   getPlaylistId,
   getPlaylistTotalTime,
+  getSongId,
   getSongLength,
   getSongsUsers,
   isPlaylistPage,
@@ -26,10 +29,16 @@ import {
 import { Playlist } from './types/playlist';
 import { Song } from './types/song';
 
+const style = document.createElement('style');
+style.innerHTML = styles;
+document.getElementsByTagName('HEAD')[0].appendChild(style);
+
 let getToBottomInterval: number;
 let isGoingBottom: boolean = false;
 let queueSongInAction: Song;
 let songElementInAction: Element;
+let playlistId: string;
+let localPlaylist: Playlist;
 
 const getToBottom = () => {
   getToBottomInterval = setInterval(() => window.scrollTo(0, document.body.scrollHeight), 1000);
@@ -37,17 +46,22 @@ const getToBottom = () => {
 };
 
 const editPaylistImage = (imgUrl: string) => {
-  const playlistId: string = getPlaylistId(location.href);
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(playlistId) || '{}');
+  localPlaylist = { ...localPlaylist, img: imgUrl };
 
-  localStorage.setItem(playlistId, JSON.stringify({ ...localPlaylist, img: imgUrl } as Playlist));
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
+
   (document.getElementById('img') as HTMLImageElement).src = imgUrl;
 };
 
 const saveUsersState = (id: string) => {
-  const playlistId: string = getPlaylistId(location.href);
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(playlistId) || '{}');
-
   const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map(
     (userCheckbox: Element): User => ({
       name: (userCheckbox as HTMLInputElement).value,
@@ -55,13 +69,21 @@ const saveUsersState = (id: string) => {
     }),
   );
 
-  localStorage.setItem(playlistId, JSON.stringify({ ...localPlaylist, users } as Playlist));
+  localPlaylist = { ...localPlaylist, users };
+
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
 };
 
 const manageSongUsers = (id: string, song: Song): string[] => {
-  const playlistId: string = getPlaylistId(location.href);
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(playlistId) || '{}');
-  const localSongs: Song[] = localPlaylist.songs || [];
+  const localSongs: Song[] = localPlaylist?.songs || [];
   const songUsers: string[] = [];
 
   const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map(
@@ -75,18 +97,25 @@ const manageSongUsers = (id: string, song: Song): string[] => {
     user.isChecked && songUsers.push(user.name);
   });
 
-  localStorage.setItem(
-    getPlaylistId(location.href),
-    JSON.stringify({
-      ...localPlaylist,
-      songs: localSongs.map(
-        (localSong: Song): Song => ({
-          ...localSong,
-          users: areSongsEqual(localSong, song) ? songUsers : localSong.users,
-        }),
-      ),
-    } as Playlist),
-  );
+  localPlaylist = {
+    ...localPlaylist,
+    songs: localSongs.map(
+      (localSong: Song): Song => ({
+        ...localSong,
+        users: areSongsEqual(localSong, song) ? songUsers : localSong.users,
+      }),
+    ),
+  };
+
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
 
   return songUsers;
 };
@@ -97,7 +126,7 @@ const returnToTop = () => {
   window.scrollTo(0, 0);
 };
 
-const showModal =  (id: string) => {
+const showModal = (id: string) => {
   document.querySelector('body')!.style.overflow = 'hidden';
   document.getElementById(id)!.style.display = 'block';
 
@@ -107,46 +136,64 @@ const showModal =  (id: string) => {
 };
 
 const resetAllHeardSongs = () => {
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
-  const localSongs: Song[] = localPlaylist.songs || [];
+  const localSongs: Song[] = localPlaylist?.songs || [];
 
-  localStorage.setItem(
-    getPlaylistId(location.href),
-    JSON.stringify({
-      ...localPlaylist,
-      songs: localSongs.map((localSong: Song): Song => ({ ...localSong, isHeard: false })),
-    } as Playlist),
-  );
+  localPlaylist = {
+    ...localPlaylist,
+    songs: localSongs.map((localSong: Song): Song => ({ ...localSong, isHeard: false })),
+  };
+
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
 };
 
 const resetHeardSong = (song: Song) => {
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
-  const localSongs: Song[] = localPlaylist.songs || [];
+  const localSongs: Song[] = localPlaylist?.songs || [];
 
-  localStorage.setItem(
-    getPlaylistId(location.href),
-    JSON.stringify({
-      ...localPlaylist,
-      songs: localSongs.map(
-        (localSong: Song): Song => ({ ...localSong, isHeard: !areSongsEqual(localSong, song) && localSong.isHeard }),
-      ),
-    } as Playlist),
-  );
+  localPlaylist = {
+    ...localPlaylist,
+    songs: localSongs.map(
+      (localSong: Song): Song => ({ ...localSong, isHeard: !areSongsEqual(localSong, song) && localSong.isHeard }),
+    ),
+  };
+
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
 };
 
 const hearSong = (song: Song) => {
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
-  const localSongs: Song[] = localPlaylist.songs || [];
+  const localSongs: Song[] = localPlaylist?.songs || [];
 
-  localStorage.setItem(
-    getPlaylistId(location.href),
-    JSON.stringify({
-      ...localPlaylist,
-      songs: localSongs.map(
-        (localSong: Song): Song => ({ ...localSong, isHeard: areSongsEqual(localSong, song) || localSong.isHeard }),
-      ),
-    } as Playlist),
-  );
+  localPlaylist = {
+    ...localPlaylist,
+    songs: localSongs.map(
+      (localSong: Song): Song => ({ ...localSong, isHeard: areSongsEqual(localSong, song) || localSong.isHeard }),
+    ),
+  };
+
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
 };
 
 const skipSong = () => {
@@ -160,16 +207,21 @@ const skipSong = () => {
 
 const syncMusic = () => {
   const songsElements: NodeListOf<Element> = document.querySelectorAll('ytmusic-responsive-list-item-renderer');
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
-  const localSongs: Song[] = localPlaylist.songs || [];
-  const localUsers: User[] = localPlaylist.users || [];
+  const localSongs: Song[] = localPlaylist?.songs || [];
+  const localUsers: User[] = localPlaylist?.users || [];
   const formattedSongsElements: Song[] = formatSongsElements(songsElements, localSongs);
   const songsUsers: User[] = getSongsUsers(formattedSongsElements, localUsers);
+  localPlaylist = { ...localPlaylist, songs: formattedSongsElements, users: songsUsers };
 
-  localStorage.setItem(
-    getPlaylistId(location.href),
-    JSON.stringify({ ...localPlaylist, songs: formattedSongsElements, users: songsUsers } as Playlist),
-  );
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
 
   document
     .getElementsByClassName('metadata')[0]
@@ -197,7 +249,7 @@ const addSongUsersToTitle = (song: Song) => {
   deleteTag(document.getElementById('like-button-renderer')!);
   (
     document.getElementsByClassName('middle-controls style-scope ytmusic-player-bar')[0] as HTMLElement
-  ).style.justifyContent = 'right';
+  ).style.justifyContent = 'left';
   document.getElementById('right-controls')!.style.width = '92px';
 };
 
@@ -211,12 +263,19 @@ const getShownSongDetails = (): Song => {
   let artist: string = '';
   let index = 0;
 
+  const songLink: string = (
+    document.getElementsByClassName('ytp-title-link yt-uix-sessionlink')[0] as HTMLAnchorElement
+  ).href;
+
+  const songId: string = getSongId(songLink);
+
   while ((songSubtitle.getElementsByClassName('style-scope')[index] as HTMLElement).innerText !== ' • ') {
     artist += (songSubtitle.getElementsByClassName('style-scope')[index] as HTMLElement).innerText;
     index++;
   }
 
   return {
+    id: songId,
     album: (songSubtitle.getElementsByClassName('style-scope')[index + 1] as HTMLElement).innerText,
     artist,
     isHeard: false,
@@ -235,6 +294,13 @@ setInterval(() => {
   }
 
   if (isPlaylistPage(pageUrl) || isSongsPage(pageUrl)) {
+    if (playlistId !== getPlaylistId(pageUrl)) {
+      playlistId = getPlaylistId(pageUrl);
+      fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+        .then((res) => res.json())
+        .then((data) => (localPlaylist = data));
+    }
+
     const isMusicShown = !!document
       .getElementsByClassName('middle-controls')[0]
       .getElementsByClassName('content-info-wrapper')[0]
@@ -242,9 +308,8 @@ setInterval(() => {
       .getElementsByClassName('byline')[0];
 
     if (isMusicShown) {
-      const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(pageUrl)) || '{}');
-      const localSongs: Song[] = localPlaylist.songs || [];
-      const localUsers: User[] = localPlaylist.users || [];
+      const localSongs: Song[] = localPlaylist?.songs || [];
+      const localUsers: User[] = localPlaylist?.users || [];
 
       const shownSongDetails: Song = getShownSongDetails();
       const currSong: Song | undefined = localSongs.find((localSong) => areSongsEqual(localSong, shownSongDetails));
@@ -258,14 +323,13 @@ setInterval(() => {
   }
 
   if (isSongsPage(pageUrl)) {
-    const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(pageUrl)) || '{}');
-    const localUsers: User[] = localPlaylist.users || [];
+    const localUsers: User[] = localPlaylist?.users || [];
 
     if (!!document.querySelector('tp-yt-paper-listbox')) {
       !document.getElementById('reset-is-heard') &&
-        queueSongInAction.isHeard &&
+        queueSongInAction?.isHeard &&
         document.querySelector('tp-yt-paper-listbox')?.prepend(
-          TooltipItem('reset-is-heard', 'איפוס השמעה', () => {
+          TooltipItem('reset-is-heard', 'Reset Hearing', () => {
             resetHeardSong(queueSongInAction);
             queueSongInAction.isHeard = false;
           }),
@@ -273,7 +337,7 @@ setInterval(() => {
 
       !document.getElementById('change-song-users') &&
         document.querySelector('tp-yt-paper-listbox')?.prepend(
-          TooltipItem('change-song-users', 'ניהול משתמשים', () => {
+          TooltipItem('change-song-users', "Song's Users Management", () => {
             !document.getElementById('song-users-modal') &&
               document.querySelector('body')!.appendChild(
                 UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
@@ -290,14 +354,13 @@ setInterval(() => {
 
 setInterval(() => {
   const pageUrl = location.href;
-  const localPlaylist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(pageUrl)) || '{}');
-  const localSongs: Song[] = localPlaylist.songs || [];
+  const localSongs: Song[] = localPlaylist?.songs || [];
 
   if (isPlaylistPage(location.href)) {
     if (!document.getElementsByClassName('animeme').length && !!document.getElementById('img')) {
       const playlistImg: HTMLImageElement = document.getElementById('img') as HTMLImageElement;
       playlistImg?.classList.add('animeme');
-      !!localPlaylist.img && (playlistImg.src = localPlaylist.img);
+      !!localPlaylist?.img && (playlistImg.src = localPlaylist.img);
       playlistImg.style.cursor = 'pointer';
 
       playlistImg.addEventListener('mouseover', () => {
@@ -310,7 +373,7 @@ setInterval(() => {
 
       playlistImg.addEventListener('click', () => {
         document.querySelector('body')!.append(
-          EditModal('edit-playlist-img', localPlaylist.img || 'קישור לתמונת פלייליסט', (ev) => {
+          EditModal('edit-playlist-img', localPlaylist?.img || 'Enter URL For Playlist Image', (ev) => {
             editPaylistImage((ev.target as HTMLInputElement).value);
           }),
         );
@@ -327,46 +390,47 @@ setInterval(() => {
 
     !document.getElementById('sync-songs-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('sync-songs-button', 'סנכרון שירים', () => {
+        StyledButton('sync-songs-button', 'SYNC SONGS', () => {
           syncMusic();
         }),
       );
 
     document.querySelectorAll('ytmusic-toggle-button-renderer').forEach((button) => {
-      button.innerHTML.includes('הוספה לספרייה') && document.getElementById('top-level-buttons')!.removeChild(button);
+      button.innerHTML.toLowerCase().includes('add to library') &&
+        document.getElementById('top-level-buttons')!.removeChild(button);
     });
 
     !document.getElementById('users-management-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('users-management-button', 'ניהול משתמשים', () => {
+        StyledButton('users-management-button', 'USERS MANAGEMENT', () => {
           showModal('users-modal');
         }),
       );
 
     !document.getElementById('statistics-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('statistics-button', 'סטטיסטיות', () => {
-          document.querySelector('body')!.append(StatisticsModal('statistics-modal'));
+        StyledButton('statistics-button', 'STATISTICS', () => {
+          document.querySelector('body')!.append(StatisticsModal('statistics-modal', localPlaylist));
           showModal('statistics-modal');
         }),
       );
 
     !document.getElementById('reset-all-songs-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('reset-all-songs-button', 'איפוס שירים', () => {
+        StyledButton('reset-all-songs-button', 'RESET PLAYED SONGS', () => {
           resetAllHeardSongs();
         }),
       );
 
     !document.getElementById('users-modal') &&
       document.querySelector('body')!.appendChild(
-        UsersModal('users-modal', localPlaylist.users || [], () => {
+        UsersModal('users-modal', localPlaylist?.users || [], () => {
           saveUsersState('users-modal');
         }),
       );
 
     if (
-      !!localPlaylist.songs?.length &&
+      !!localPlaylist?.songs?.length &&
       !!document
         .getElementsByClassName('metadata')?.[0]
         ?.getElementsByClassName('second-subtitle')?.[0]
@@ -377,7 +441,7 @@ setInterval(() => {
         .getElementsByClassName('metadata')[0]
         .getElementsByClassName('second-subtitle')[0]
         .getElementsByTagName('span')[2].id = 'playlist-length';
-      document.getElementById('playlist-length')!.innerHTML = getPlaylistTotalTime(localPlaylist.songs);
+      document.getElementById('playlist-length')!.innerHTML = getPlaylistTotalTime(localPlaylist?.songs || []);
     }
   }
 

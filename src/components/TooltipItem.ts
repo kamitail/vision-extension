@@ -11,6 +11,9 @@ export const TooltipItem = (id: string, text: string, clickAction: () => any) =>
   item.classList.add('iron-selected');
   item.id = id;
   item.addEventListener('click', clickAction);
+  item.addEventListener('click', () => {
+    (document.querySelector('tp-yt-iron-dropdown') as HTMLElement).style.display = 'none';
+  });
 
   itemContent.classList.add('yt-simple-endpoint');
   itemContent.classList.add('style-scope');

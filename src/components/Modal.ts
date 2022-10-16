@@ -25,6 +25,7 @@ export const Modal = (height: string, width: string, id: string): HTMLDivElement
   modalContent.style.height = height;
   modalContent.style.transitionProperty = 'margin';
   modalContent.style.transitionDuration = '0.3s';
+  modalContent.classList.add('scroll-bar');
   modalContent.id = `${id}-content`;
 
   closeButton.style.position = 'relative';

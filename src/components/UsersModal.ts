@@ -4,8 +4,7 @@ import { UsersCheckList } from './UsersCheckList';
 
 export const UsersModal = (id: string, users: User[], saveUsersState: () => void): HTMLDivElement => {
   const modal = Modal('75vh', '20%', id);
-  const modalContent = modal.firstElementChild!
-
+  const modalContent = modal.firstElementChild!;
 
   modalContent.appendChild(
     UsersCheckList(id, users, () => {

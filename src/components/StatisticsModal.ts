@@ -1,20 +1,18 @@
-import { getPlaylistId } from 'functions';
 import { Playlist } from 'types/playlist';
 import { Song } from 'types/song';
 import { User } from 'types/user';
 import { Modal } from './Modal';
 
-export const StatisticsModal = (id: string) => {
+export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
   const modal = Modal('75vh', '80%', id);
-  const modalContent = modal.firstElementChild!
+  const modalContent = modal.firstElementChild!;
   const statsContent: HTMLDivElement = document.createElement('div');
   const tabsWrapper: HTMLDivElement = document.createElement('div');
   const tabs: HTMLDivElement[] = [1, 2].map(() => document.createElement('div'));
 
   let currTabIndex: number = 0;
-  const playlist: Playlist = JSON.parse(localStorage.getItem(getPlaylistId(location.href)) || '{}');
-  const users: User[] = playlist.users || [];
-  const songs: Song[] = playlist.songs || [];
+  const users: User[] = localPlaylist?.users || [];
+  const songs: Song[] = localPlaylist?.songs || [];
 
   tabsWrapper.style.width = '100%';
   tabsWrapper.style.display = 'flex';
@@ -26,12 +24,12 @@ export const StatisticsModal = (id: string) => {
   tabs[0].classList.add('tab-header');
   tabs[0].classList.add('style-scope');
   tabs[0].classList.add('ytmusic-player-page');
-  tabs[0].innerText = 'משתמשים';
+  tabs[0].innerText = 'USERS';
 
   tabs[1].classList.add('tab-header');
   tabs[1].classList.add('style-scope');
   tabs[1].classList.add('ytmusic-player-page');
-  tabs[1].innerText = 'שירים';
+  tabs[1].innerText = 'SONGS';
 
   const renderTabs = () =>
     tabs.forEach((tab, index) => {
@@ -63,23 +61,23 @@ export const StatisticsModal = (id: string) => {
         username.style.width = '20%';
         username.style.color = 'white';
         username.style.fontSize = '18px';
-        username.style.textAlign = 'right';
+        username.style.textAlign = 'left';
         username.style.fontWeight = '500';
-        username.innerText = 'שם משתמש';
+        username.innerText = 'Username';
 
         songsQuantity.style.width = '20%';
         songsQuantity.style.color = 'white';
         songsQuantity.style.fontSize = '18px';
-        songsQuantity.style.textAlign = 'right';
+        songsQuantity.style.textAlign = 'left';
         songsQuantity.style.fontWeight = '500';
-        songsQuantity.innerText = 'סה"כ שירים';
+        songsQuantity.innerText = 'Songs Quantity';
 
         heardSongsQuantity.style.width = '20%';
         heardSongsQuantity.style.color = 'white';
         heardSongsQuantity.style.fontSize = '18px';
-        heardSongsQuantity.style.textAlign = 'right';
+        heardSongsQuantity.style.textAlign = 'left';
         heardSongsQuantity.style.fontWeight = '500';
-        heardSongsQuantity.innerText = 'סה"כ שירים שהושמעו';
+        heardSongsQuantity.innerText = 'Played Songs Quantity';
 
         breakLine.style.backgroundColor = '#3c3c3c';
         breakLine.style.height = '1px';
@@ -110,20 +108,20 @@ export const StatisticsModal = (id: string) => {
           username.style.width = '20%';
           username.style.color = 'white';
           username.style.fontSize = '18px';
-          username.style.textAlign = 'right';
+          username.style.textAlign = 'left';
           username.innerText = user.name;
 
           songsQuantityElem.style.width = '20%';
           songsQuantityElem.style.color = 'white';
           songsQuantityElem.style.fontSize = '18px';
-          songsQuantityElem.style.textAlign = 'right';
-          songsQuantityElem.innerText = `${songsQuantity} שירים`;
+          songsQuantityElem.style.textAlign = 'left';
+          songsQuantityElem.innerText = `${songsQuantity} songs`;
 
           heardSongsQuantityElem.style.width = '20%';
           heardSongsQuantityElem.style.color = 'white';
           heardSongsQuantityElem.style.fontSize = '18px';
-          heardSongsQuantityElem.style.textAlign = 'right';
-          heardSongsQuantityElem.innerText = `${heardSongsQuantity} שירים`;
+          heardSongsQuantityElem.style.textAlign = 'left';
+          heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs`;
 
           breakLine.style.backgroundColor = '#3c3c3c';
           breakLine.style.height = '1px';
@@ -142,7 +140,7 @@ export const StatisticsModal = (id: string) => {
   renderTabs();
 
   tabs.forEach((tab) => tabsWrapper.append(tab));
-  modalContent.prepend(tabsWrapper);
+  modalContent.firstElementChild!.after(tabsWrapper);
 
   return modal;
 };
