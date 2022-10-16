@@ -1130,17 +1130,22 @@ setInterval(() => {
                 .getElementsByTagName('ytmusic-player-queue-item');
             [...queueSongs].forEach((song) => {
                 var _a, _b, _c;
+                song.attributes.selected && (song.style.backgroundColor = '#831e1e');
                 const songName = (_b = (_a = song === null || song === void 0 ? void 0 : song.getElementsByClassName('song-title')) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.innerText;
                 const songDuration = song.getElementsByClassName('duration')[0].innerText;
                 const songLength = getSongLength(songDuration);
                 const sameLocalSong = localSongs.find((localSong) => localSong.name === songName && localSong.length === songLength);
                 const rowText = ((sameLocalSong === null || sameLocalSong === void 0 ? void 0 : sameLocalSong.users) || []).join(', ');
+                const isSongShouldPlay = !(!!sameLocalSong &&
+                    (sameLocalSong.isHeard || !isSongUserChecked(localUsers, sameLocalSong)));
+                song.style.opacity = isSongShouldPlay ? '1' : '0.3';
+                song.style.fontStyle = isSongShouldPlay ? 'normal' : 'italic';
                 if (!!((_c = song === null || song === void 0 ? void 0 : song.getElementsByClassName('kuwewe-row')) === null || _c === void 0 ? void 0 : _c.length) &&
                     song.getElementsByClassName('song-info')[0].getElementsByClassName('kuwewe-row')[0].innerHTML === rowText)
                     return;
                 song.style.height = '75px';
                 song.style.cssText += '--ytmusic-player-queue-item-thumbnail-size:60px;';
-                sameLocalSong &&
+                !!sameLocalSong &&
                     song
                         .querySelector('ytmusic-menu-renderer')
                         .querySelector('tp-yt-paper-icon-button')
