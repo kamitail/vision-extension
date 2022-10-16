@@ -56,9 +56,9 @@ export const UsersCheckList = (listName: string, users: User[], saveUsersState: 
     username.style.color = 'white';
     username.textContent = name;
 
-    row.appendChild(username);
     row.appendChild(checkbox);
     row.appendChild(costumCheckbox);
+    row.appendChild(username);
 
     breakLine.style.backgroundColor = '#3c3c3c';
     breakLine.style.height = '1px';
