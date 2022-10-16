@@ -11,4 +11,8 @@ export const styles = `
 .scroll-bar::-webkit-scrollbar-thumb:hover {
   background: #484848; 
 }
+
+.video-size {
+  padding: 0;
+}
 `;
