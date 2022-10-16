@@ -8,7 +8,6 @@ import { StatisticsModal } from 'components/StatisticsModal';
 import { TooltipItem } from 'components/TooltipItem';
 import { UsersModal } from 'components/UsersModal';
 import { PLAYLIST_API_ENDPOINT } from 'constants';
-import { last } from 'functions/generic-use';
 import { styles } from 'styles';
 import { User } from 'types/user';
 import { FloatButton } from './components/FloatButton';
@@ -242,19 +241,22 @@ const syncMusic = () => {
 };
 
 const addSongUsersToTitle = (song: Song) => {
-  const songContent: Element = document
-    .getElementsByClassName('middle-controls')[0]
-    .getElementsByClassName('content-info-wrapper')[0];
+  if (!!document.getElementsByClassName('advertisement style-scope ytmusic-player-bar')[0]) {
+    document.getElementsByClassName('advertisement style-scope ytmusic-player-bar')[0].id = 'song-users-bar-id';
+  }
 
-  const songSubtitle: Element = songContent.getElementsByClassName('subtitle')[0].getElementsByClassName('byline')[0];
-  const usersData: Element = last([...songSubtitle.getElementsByClassName('style-scope')]);
+  const usersData: HTMLElement = document.getElementById('song-users-bar-id')!;
+  usersData.hidden = false;
+  usersData.id = 'song-users-bar-id';
+  usersData.classList.replace('advertisement', 'byline');
+  usersData.style.whiteSpace = 'nowrap';
+  usersData.innerHTML !== `${song.users.join(', ')} •&nbsp;` &&
+    (usersData.innerHTML = `${song.users.join(', ')} •&nbsp;`);
 
-  usersData.innerHTML !== song.users.join(', ') && (usersData.innerHTML = song.users.join(', '));
   deleteTag(document.getElementById('like-button-renderer')!);
   (
     document.getElementsByClassName('middle-controls style-scope ytmusic-player-bar')[0] as HTMLElement
   ).style.justifyContent = 'left';
-  document.getElementById('right-controls')!.style.width = '92px';
 };
 
 const getShownSongDetails = (): Song => {
@@ -328,6 +330,11 @@ setInterval(() => {
 
   if (isSongsPage(pageUrl)) {
     const localUsers: User[] = localPlaylist?.users || [];
+
+    if (!document.getElementsByClassName('video-size')) {
+      const mainPanel: HTMLElement = document.getElementById('main-panel')!;
+      mainPanel.classList.add('video-size');
+    }
 
     if (!!document.querySelector('tp-yt-paper-listbox')) {
       !document.getElementById('reset-is-heard') &&
