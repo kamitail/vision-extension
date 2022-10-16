@@ -2,6 +2,7 @@ import { User } from 'types/user';
 
 export const UsersCheckList = (listName: string, users: User[], saveUsersState: () => void): HTMLDivElement => {
   const list: HTMLDivElement = document.createElement('div');
+  list.id = listName;
 
   users.forEach(({ isChecked, name }: User) => {
     const row: HTMLDivElement = document.createElement('div');
