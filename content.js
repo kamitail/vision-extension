@@ -566,10 +566,6 @@ const UsersModal = (id, users, saveUsersState) => {
 
 const PLAYLIST_API_ENDPOINT = 'https://playlists-api.vercel.app';
 
-const last = (array) => array[array.length - 1];
-const sum = (array) => array.reduce((totalSum, currValue) => totalSum + currValue);
-const sumBy = (array, key) => sum(array.map((element) => element[key]));
-
 const styles = `
 .scroll-bar::-webkit-scrollbar {
   width: 12px;
@@ -582,6 +578,10 @@ const styles = `
 
 .scroll-bar::-webkit-scrollbar-thumb:hover {
   background: #484848; 
+}
+
+.video-size {
+  padding: 0;
 }
 `;
 
@@ -636,6 +636,10 @@ const StyledButton = (id, buttonText, clickAction, icon) => {
     buttonIcon.style.filter = 'invert(100%) sepia(100%) saturate(100%)';
     return button;
 };
+
+const last = (array) => array[array.length - 1];
+const sum = (array) => array.reduce((totalSum, currValue) => totalSum + currValue);
+const sumBy = (array, key) => sum(array.map((element) => element[key]));
 
 const isTagExist = (tagContent) => !!tagContent && tagContent.innerHTML !== '';
 const isPlaylistPage = (pageUrl) => pageUrl.includes('playlist?list=');
@@ -862,15 +866,18 @@ const syncMusic = () => {
     }));
 };
 const addSongUsersToTitle = (song) => {
-    const songContent = document
-        .getElementsByClassName('middle-controls')[0]
-        .getElementsByClassName('content-info-wrapper')[0];
-    const songSubtitle = songContent.getElementsByClassName('subtitle')[0].getElementsByClassName('byline')[0];
-    const usersData = last([...songSubtitle.getElementsByClassName('style-scope')]);
-    usersData.innerHTML !== song.users.join(', ') && (usersData.innerHTML = song.users.join(', '));
+    if (!!document.getElementsByClassName('advertisement style-scope ytmusic-player-bar')[0]) {
+        document.getElementsByClassName('advertisement style-scope ytmusic-player-bar')[0].id = 'song-users-bar-id';
+    }
+    const usersData = document.getElementById('song-users-bar-id');
+    usersData.hidden = false;
+    usersData.id = 'song-users-bar-id';
+    usersData.classList.replace('advertisement', 'byline');
+    usersData.style.whiteSpace = 'nowrap';
+    usersData.innerHTML !== `${song.users.join(', ')} •&nbsp;` &&
+        (usersData.innerHTML = `${song.users.join(', ')} •&nbsp;`);
     deleteTag(document.getElementById('like-button-renderer'));
     document.getElementsByClassName('middle-controls style-scope ytmusic-player-bar')[0].style.justifyContent = 'left';
-    document.getElementById('right-controls').style.width = '92px';
 };
 const getShownSongDetails = () => {
     const songContent = document
@@ -927,6 +934,10 @@ setInterval(() => {
     }
     if (isSongsPage(pageUrl)) {
         const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
+        if (!document.getElementsByClassName('video-size')) {
+            const mainPanel = document.getElementById('main-panel');
+            mainPanel.classList.add('video-size');
+        }
         if (!!document.querySelector('tp-yt-paper-listbox')) {
             !document.getElementById('reset-is-heard') &&
                 (queueSongInAction === null || queueSongInAction === void 0 ? void 0 : queueSongInAction.isHeard) &&
