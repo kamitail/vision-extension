@@ -1,5 +1,152 @@
 'use strict';
 
+const resetIcon = `
+<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 26 26" style="enable-background:new 0 0 26 26;" xml:space="preserve">
+<g>
+	<path style="fill:#030104;" d="M15.086,20.626c-0.146,0.253-0.266,0.497-0.366,0.746C14.156,22.761,12.837,26,8.954,26
+		c-3.542,0-4.642-3.665-4.642-5c0-0.553,0.448-1,1-1s1,0.447,1,1c0,0.03,0.28,3,2.642,3c2.113,0,3.063-1.292,3.913-3.377
+		c0.134-0.334,0.294-0.661,0.487-0.997c0.275-0.479,0.889-0.643,1.366-0.366C15.199,19.536,15.363,20.147,15.086,20.626z
+		 M24.698,24.71c-0.195,0.195-0.451,0.293-0.707,0.293s-0.512-0.098-0.707-0.293l-10.76-10.76c0,0.003,0.001,0.006,0.002,0.009
+		l-4.15-4.152c0.001-0.001,0.002-0.002,0.003-0.003L1.302,2.728c-0.391-0.391-0.391-1.023,0-1.414s1.023-0.391,1.414,0l3.153,3.153
+		C7.038,1.841,9.901,0,13.109,0c3.945,0,8.203,3.291,8.203,8.607c0,4.062-1.505,6.413-3.07,8.233l6.456,6.456
+		C25.088,23.687,25.088,24.319,24.698,24.71z M16.825,15.424c1.367-1.609,2.487-3.482,2.487-6.817c0-4.081-3.22-6.607-6.203-6.607
+		c-3.092,0-5.167,2.039-5.663,4.044L9.58,8.178C10.734,4.811,11.618,4,13.734,4c1.953,0,3.585,1.418,3.585,4.133
+		C17.319,8.555,17.281,9,16.922,9c-0.917,0,0.328-3-2.688-3c-1.92,0-2.854,1.602-2.546,4.286L16.825,15.424z M7.312,17.115
+		c0,0.309,0,1.893,2,1.893c1.18,0,2.35-1.048,2.914-2.521l-2.963-2.963c0.019,0.08,0.049,0.152,0.049,0.248
+		C9.312,15.602,7.312,15.101,7.312,17.115z"/>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>
+`;
+
+const statisticsIcon = `
+<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 294 294" style="enable-background:new 0 0 294 294;" xml:space="preserve">
+<g>
+	<path d="M279,250H15c-8.284,0-15,6.716-15,15s6.716,15,15,15h264c8.284,0,15-6.716,15-15S287.284,250,279,250z"/>
+	<path d="M30.5,228h47c5.247,0,9.5-4.253,9.5-9.5v-130c0-5.247-4.253-9.5-9.5-9.5h-47c-5.247,0-9.5,4.253-9.5,9.5v130
+		C21,223.747,25.253,228,30.5,228z"/>
+	<path d="M123.5,228h47c5.247,0,9.5-4.253,9.5-9.5v-195c0-5.247-4.253-9.5-9.5-9.5h-47c-5.247,0-9.5,4.253-9.5,9.5v195
+		C114,223.747,118.253,228,123.5,228z"/>
+	<path d="M216.5,228h47c5.247,0,9.5-4.253,9.5-9.5v-105c0-5.247-4.253-9.5-9.5-9.5h-47c-5.247,0-9.5,4.253-9.5,9.5v105
+		C207,223.747,211.253,228,216.5,228z"/>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>`;
+
+const syncIcon = `
+<svg width="28px" height="28px" viewBox="0 -2 28 28" xmlns="http://www.w3.org/2000/svg"><path d="m27.994 14.729c-.012.267-.365.566-1.091.945-1.495.778-9.236 3.967-10.883 4.821-.589.419-1.324.67-2.116.67-.641 0-1.243-.164-1.768-.452l.019.01c-1.304-.622-9.539-3.95-11.023-4.659-.741-.35-1.119-.653-1.132-.933v2.83c0 .282.39.583 1.132.933 1.484.709 9.722 4.037 11.023 4.659.504.277 1.105.44 1.744.44.795 0 1.531-.252 2.132-.681l-.011.008c1.647-.859 9.388-4.041 10.883-4.821.76-.396 1.096-.7 1.096-.982s0-2.791 0-2.791z"/><path d="m27.992 10.115c-.013.267-.365.565-1.09.944-1.495.778-9.236 3.967-10.883 4.821-.59.421-1.326.672-2.121.672-.639 0-1.24-.163-1.763-.449l.019.01c-1.304-.627-9.539-3.955-11.023-4.664-.741-.35-1.119-.653-1.132-.933v2.83c0 .282.39.583 1.132.933 1.484.709 9.721 4.037 11.023 4.659.506.278 1.108.442 1.749.442.793 0 1.527-.251 2.128-.677l-.011.008c1.647-.859 9.388-4.043 10.883-4.821.76-.397 1.096-.7 1.096-.984s0-2.791 0-2.791z"/><path d="m27.992 5.329c.014-.285-.358-.534-1.107-.81-1.451-.533-9.152-3.596-10.624-4.136-.528-.242-1.144-.383-1.794-.383-.734 0-1.426.18-2.035.498l.024-.012c-1.731.622-9.924 3.835-11.381 4.405-.729.287-1.086.552-1.073.834v2.83c0 .282.39.583 1.132.933 1.484.709 9.721 4.038 11.023 4.66.504.277 1.105.439 1.744.439.795 0 1.531-.252 2.133-.68l-.011.008c1.647-.859 9.388-4.043 10.883-4.821.76-.397 1.096-.7 1.096-.984s0-2.791 0-2.791h-.009zm-17.967 2.684 6.488-.996-1.96 2.874zm14.351-2.588-4.253 1.68-3.835-1.523 4.246-1.679 3.838 1.517zm-11.265-2.785-.628-1.157 1.958.765 1.846-.604-.499 1.196 1.881.7-2.426.252-.543 1.311-.879-1.457-2.8-.252 2.091-.754zm-4.827 1.632c1.916 0 3.467.602 3.467 1.344s-1.559 1.344-3.467 1.344-3.474-.603-3.474-1.344 1.553-1.344 3.474-1.344z"/></svg>
+`;
+
+const usersIcon = `
+<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve">
+<g>
+	<path d="M41.014,45.389l-9.553-4.776C30.56,40.162,30,39.256,30,38.248v-3.381c0.229-0.28,0.47-0.599,0.719-0.951
+		c1.239-1.75,2.232-3.698,2.954-5.799C35.084,27.47,36,26.075,36,24.5v-4c0-0.963-0.36-1.896-1-2.625v-5.319
+		c0.056-0.55,0.276-3.824-2.092-6.525C30.854,3.688,27.521,2.5,23,2.5s-7.854,1.188-9.908,3.53
+		c-2.368,2.701-2.148,5.976-2.092,6.525v5.319c-0.64,0.729-1,1.662-1,2.625v4c0,1.217,0.553,2.352,1.497,3.109
+		c0.916,3.627,2.833,6.36,3.503,7.237v3.309c0,0.968-0.528,1.856-1.377,2.32l-8.921,4.866C1.801,46.924,0,49.958,0,53.262V57.5h46
+		v-4.043C46,50.018,44.089,46.927,41.014,45.389z"/>
+	<path d="M55.467,46.526l-9.723-4.21c-0.23-0.115-0.485-0.396-0.704-0.771l6.525-0.005c0,0,0.377,0.037,0.962,0.037
+		c1.073,0,2.638-0.122,4-0.707c0.817-0.352,1.425-1.047,1.669-1.907c0.246-0.868,0.09-1.787-0.426-2.523
+		c-1.865-2.654-6.218-9.589-6.354-16.623c-0.003-0.121-0.397-12.083-12.21-12.18c-1.187,0.01-2.309,0.156-3.372,0.413
+		c0.792,2.094,0.719,3.968,0.665,4.576v4.733c0.648,0.922,1,2.017,1,3.141v4c0,1.907-1.004,3.672-2.607,4.662
+		c-0.748,2.022-1.738,3.911-2.949,5.621c-0.15,0.213-0.298,0.414-0.443,0.604v2.86c0,0.442,0.236,0.825,0.631,1.022l9.553,4.776
+		c3.587,1.794,5.815,5.399,5.815,9.41V57.5H60v-3.697C60,50.711,58.282,47.933,55.467,46.526z"/>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>
+`;
+
 const closeIcon = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 512 512" style="enable-background:new 0 0 512 512; height: 20px; width: 20px;" xml:space="preserve">
 <path style="fill:#FF3F62;" d="M437.02,74.98C388.668,26.629,324.38,0,256,0S123.333,26.629,74.981,74.98
@@ -463,7 +610,7 @@ const FloatButton = (id, clickAction) => {
     return floatButton;
 };
 
-const StyledButton = (id, buttonText, clickAction) => {
+const StyledButton = (id, buttonText, clickAction, icon) => {
     const button = document.createElement('button');
     button.style.height = '36px';
     button.style.display = 'flex';
@@ -475,12 +622,18 @@ const StyledButton = (id, buttonText, clickAction) => {
     button.style.backgroundColor = 'red';
     button.style.border = '1px solid #aaa';
     button.style.color = 'white';
-    button.style.padding = '0.7em 1.25em 0.7em 1em';
+    button.style.padding = '0.7em 1.25em 0.7em 0.7em';
     button.style.borderRadius = '2px';
     button.style.boxSizing = 'border-box';
-    button.textContent = buttonText;
+    button.innerHTML = icon;
+    button.innerHTML += buttonText;
     button.addEventListener('click', clickAction);
     button.id = id;
+    const buttonIcon = button.querySelector('svg');
+    buttonIcon.style.marginRight = '7px';
+    buttonIcon.style.height = '25px';
+    buttonIcon.style.width = '20px';
+    buttonIcon.style.filter = 'invert(100%) sepia(100%) saturate(100%)';
     return button;
 };
 
@@ -823,7 +976,7 @@ setInterval(() => {
         !document.getElementById('sync-songs-button') &&
             document.getElementById('top-level-buttons').appendChild(StyledButton('sync-songs-button', 'SYNC SONGS', () => {
                 syncMusic();
-            }));
+            }, syncIcon));
         document.querySelectorAll('ytmusic-toggle-button-renderer').forEach((button) => {
             button.innerHTML.toLowerCase().includes('add to library') &&
                 document.getElementById('top-level-buttons').removeChild(button);
@@ -831,16 +984,16 @@ setInterval(() => {
         !document.getElementById('users-management-button') &&
             document.getElementById('top-level-buttons').appendChild(StyledButton('users-management-button', 'USERS MANAGEMENT', () => {
                 showModal('users-modal');
-            }));
+            }, usersIcon));
         !document.getElementById('statistics-button') &&
             document.getElementById('top-level-buttons').appendChild(StyledButton('statistics-button', 'STATISTICS', () => {
                 document.querySelector('body').append(StatisticsModal('statistics-modal', localPlaylist));
                 showModal('statistics-modal');
-            }));
+            }, statisticsIcon));
         !document.getElementById('reset-all-songs-button') &&
             document.getElementById('top-level-buttons').appendChild(StyledButton('reset-all-songs-button', 'RESET PLAYED SONGS', () => {
                 resetAllHeardSongs();
-            }));
+            }, resetIcon));
         !document.getElementById('users-modal') &&
             document.querySelector('body').appendChild(UsersModal('users-modal', (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [], () => {
                 saveUsersState('users-modal');

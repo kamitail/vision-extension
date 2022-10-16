@@ -1,3 +1,7 @@
+import { resetIcon } from 'assets/reset-icon';
+import { statisticsIcon } from 'assets/statistics-icon';
+import { syncIcon } from 'assets/sync-icon';
+import { usersIcon } from 'assets/users-icon';
 import { EditModal } from 'components/EditModal';
 import { QueueRow } from 'components/QueueRow';
 import { StatisticsModal } from 'components/StatisticsModal';
@@ -390,9 +394,14 @@ setInterval(() => {
 
     !document.getElementById('sync-songs-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('sync-songs-button', 'SYNC SONGS', () => {
-          syncMusic();
-        }),
+        StyledButton(
+          'sync-songs-button',
+          'SYNC SONGS',
+          () => {
+            syncMusic();
+          },
+          syncIcon,
+        ),
       );
 
     document.querySelectorAll('ytmusic-toggle-button-renderer').forEach((button) => {
@@ -402,24 +411,39 @@ setInterval(() => {
 
     !document.getElementById('users-management-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('users-management-button', 'USERS MANAGEMENT', () => {
-          showModal('users-modal');
-        }),
+        StyledButton(
+          'users-management-button',
+          'USERS MANAGEMENT',
+          () => {
+            showModal('users-modal');
+          },
+          usersIcon,
+        ),
       );
 
     !document.getElementById('statistics-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('statistics-button', 'STATISTICS', () => {
-          document.querySelector('body')!.append(StatisticsModal('statistics-modal', localPlaylist));
-          showModal('statistics-modal');
-        }),
+        StyledButton(
+          'statistics-button',
+          'STATISTICS',
+          () => {
+            document.querySelector('body')!.append(StatisticsModal('statistics-modal', localPlaylist));
+            showModal('statistics-modal');
+          },
+          statisticsIcon,
+        ),
       );
 
     !document.getElementById('reset-all-songs-button') &&
       document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton('reset-all-songs-button', 'RESET PLAYED SONGS', () => {
-          resetAllHeardSongs();
-        }),
+        StyledButton(
+          'reset-all-songs-button',
+          'RESET PLAYED SONGS',
+          () => {
+            resetAllHeardSongs();
+          },
+          resetIcon,
+        ),
       );
 
     !document.getElementById('users-modal') &&
