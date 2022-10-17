@@ -13,6 +13,14 @@ export const styles = `
 }
 
 .video-size {
-  padding: 0;
+  padding: 0px 0px !important;
+}
+
+.video-guard {
+  position: absolute;
+  z-index: 100;
+  top: 60px;
+  width: 400px;
+  height: 400px;
 }
 `;

@@ -4,7 +4,7 @@ export const UsersCheckList = (listName: string, users: User[], saveUsersState: 
   const list: HTMLDivElement = document.createElement('div');
   list.id = listName;
 
-  users.forEach(({ isChecked, name }: User) => {
+  users.forEach(({ isChecked, name, nickname }: User) => {
     const row: HTMLDivElement = document.createElement('div');
     const checkbox: HTMLInputElement = document.createElement('input');
     const costumCheckbox: HTMLSpanElement = document.createElement('span');
@@ -55,7 +55,7 @@ export const UsersCheckList = (listName: string, users: User[], saveUsersState: 
 
     username.style.fontSize = '18px';
     username.style.color = 'white';
-    username.textContent = name;
+    username.textContent = nickname;
 
     row.appendChild(checkbox);
     row.appendChild(costumCheckbox);

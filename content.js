@@ -1,5 +1,52 @@
 'use strict';
 
+const editIcon = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 487.977 487.977" style="enable-background:new 0 0 487.977 487.977;" xml:space="preserve">
+<g>
+	<g>
+		<path d="M484.685,196.177c-4-3.8-10.3-3.7-14.1,0.3l-181,189.6l-14.1-57.6l188.8-189.7c3.9-3.9,3.9-10.2,0-14.1
+			c-3.9-3.9-10.2-3.9-14.1,0l-188.8,189.6l-70.3-17.7l-17.7-70.3l189.6-188.8c3.9-3.9,3.9-10.2,0-14.1c-3.9-3.9-10.2-3.9-14.1,0
+			l-189.6,188.9l-57.6-14.1l189.6-181c4-3.8,4.1-10.1,0.3-14.1s-10.1-4.1-14.1-0.3l-202.7,193.6l-0.1,0.1c-0.3,0.2-0.5,0.5-0.7,0.8
+			c-0.1,0.1-0.1,0.1-0.2,0.2c-0.3,0.3-0.5,0.7-0.7,1v0.1c-0.2,0.3-0.4,0.7-0.5,1c0,0.1-0.1,0.2-0.1,0.3c-0.1,0.3-0.2,0.6-0.3,1
+			c0,0.1,0,0.1-0.1,0.2l-71.6,274.4c-0.9,3.4,0.1,7.1,2.6,9.6c1.9,1.9,4.5,2.9,7.1,2.9c0.8,0,1.7-0.1,2.5-0.3l274.4-71.6
+			c0.1,0,0.1,0,0.2-0.1c0.3-0.1,0.6-0.2,1-0.3c0.1,0,0.2-0.1,0.3-0.1c0.3-0.2,0.7-0.3,1-0.5h0.1c0.4-0.2,0.7-0.5,1-0.7
+			c0.1-0.1,0.1-0.1,0.2-0.2c0.3-0.2,0.5-0.5,0.8-0.7l0.1-0.1l193.6-202.7C488.785,206.277,488.685,199.977,484.685,196.177z
+			 M23.785,463.777l18.7-71.7l53,53L23.785,463.777z M117.885,439.277l-69.6-69.6l40.3-154.2l65.4,16l19.1,75.7
+			c0.9,3.6,3.7,6.4,7.3,7.3h0l75.7,19.1l16,65.4L117.885,439.277z"/>
+	</g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+<g>
+</g>
+</svg>`;
+
 const resetIcon = `
 <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 26 26" style="enable-background:new 0 0 26 26;" xml:space="preserve">
@@ -260,7 +307,7 @@ const Modal = (height, width, id) => {
     return modal;
 };
 
-const EditModal = (id, placeholder, inputAction) => {
+const EditModal = (id, text, inputAction) => {
     const modal = Modal('25vh', '50%', id);
     const modalContent = modal.firstElementChild;
     const closeButton = document.createElement('div');
@@ -274,9 +321,17 @@ const EditModal = (id, placeholder, inputAction) => {
     inputBox.style.marginTop = '40px';
     inputField.classList.add('style-scope');
     inputField.classList.add('ytmusic-search-box');
-    inputField.placeholder = placeholder;
+    inputField.value = text;
     inputField.style.color = 'white';
-    inputField.addEventListener('input', inputAction);
+    inputField.addEventListener('keypress', (ev) => {
+        if (ev.key !== 'Enter')
+            return;
+        inputAction(ev);
+        document.querySelector('body').style.overflow = 'visible';
+        modal.style.display = 'none';
+        modalContent.style.margin = '5vh auto';
+        document.querySelector('body').removeChild(modal);
+    });
     inputBox.append(inputField);
     modalContent.append(closeButton);
     modalContent.append(inputBox);
@@ -352,6 +407,7 @@ const StatisticsModal = (id, localPlaylist) => {
         if (currTabIndex === 0 && index === 0) {
             const row = document.createElement('div');
             const username = document.createElement('div');
+            const nickname = document.createElement('div');
             const songsQuantity = document.createElement('div');
             const heardSongsQuantity = document.createElement('div');
             const breakLine = document.createElement('hr');
@@ -365,6 +421,12 @@ const StatisticsModal = (id, localPlaylist) => {
             username.style.textAlign = 'left';
             username.style.fontWeight = '500';
             username.innerText = 'Username';
+            nickname.style.width = '20%';
+            nickname.style.color = 'white';
+            nickname.style.fontSize = '18px';
+            nickname.style.textAlign = 'left';
+            nickname.style.fontWeight = '500';
+            nickname.innerText = 'Nickname';
             songsQuantity.style.width = '20%';
             songsQuantity.style.color = 'white';
             songsQuantity.style.fontSize = '18px';
@@ -381,6 +443,7 @@ const StatisticsModal = (id, localPlaylist) => {
             breakLine.style.height = '1px';
             breakLine.style.marginBottom = '5px';
             row.append(username);
+            row.append(nickname);
             row.append(songsQuantity);
             row.append(heardSongsQuantity);
             statsContent.append(row);
@@ -388,6 +451,7 @@ const StatisticsModal = (id, localPlaylist) => {
             users.forEach((user) => {
                 const row = document.createElement('div');
                 const username = document.createElement('div');
+                const nickname = document.createElement('div');
                 const songsQuantityElem = document.createElement('div');
                 const heardSongsQuantityElem = document.createElement('div');
                 const breakLine = document.createElement('hr');
@@ -403,6 +467,11 @@ const StatisticsModal = (id, localPlaylist) => {
                 username.style.fontSize = '18px';
                 username.style.textAlign = 'left';
                 username.innerText = user.name;
+                nickname.style.width = '20%';
+                nickname.style.color = 'white';
+                nickname.style.fontSize = '18px';
+                nickname.style.textAlign = 'left';
+                nickname.innerText = user.nickname;
                 songsQuantityElem.style.width = '20%';
                 songsQuantityElem.style.color = 'white';
                 songsQuantityElem.style.fontSize = '18px';
@@ -417,6 +486,7 @@ const StatisticsModal = (id, localPlaylist) => {
                 breakLine.style.height = '1px';
                 breakLine.style.marginBottom = '10px';
                 row.append(username);
+                row.append(nickname);
                 row.append(songsQuantityElem);
                 row.append(heardSongsQuantityElem);
                 statsContent.append(row);
@@ -487,7 +557,7 @@ const TooltipItem = (id, text, clickAction) => {
     item.id = id;
     item.addEventListener('click', clickAction);
     item.addEventListener('click', () => {
-        document.querySelector('tp-yt-iron-dropdown').style.display = 'none';
+        document.querySelectorAll('tp-yt-iron-dropdown').forEach((dropdown) => (dropdown.style.display = 'none'));
     });
     itemContent.classList.add('yt-simple-endpoint');
     itemContent.classList.add('style-scope');
@@ -507,10 +577,43 @@ const TooltipItem = (id, text, clickAction) => {
     return item;
 };
 
+const UserDetailsRow = (id, text, icon, clickAction) => {
+    const row = document.createElement('div');
+    const rowIcon = document.createElement('div');
+    const rowText = document.createElement('div');
+    row.classList.add('style-scope');
+    row.classList.add('yt-multi-page-menu-section-renderer');
+    row.addEventListener('click', clickAction);
+    row.style.fontSize = '1.4rem';
+    row.style.lineHeight = '2rem';
+    row.style.fontWeight = '400';
+    row.style.display = 'flex';
+    row.style.alignItems = 'center';
+    row.style.cursor = 'pointer';
+    row.style.padding = '10px 36px 10px 20px';
+    row.id = id;
+    row.addEventListener('click', () => {
+        document.querySelectorAll('tp-yt-iron-dropdown').forEach((dropdown) => (dropdown.style.display = 'none'));
+    });
+    rowIcon.classList.add('style-scope');
+    rowIcon.classList.add('ytd-compact-link-renderer');
+    rowIcon.style.marginRight = '17px';
+    rowIcon.style.height = '18px';
+    rowIcon.style.width = '18px';
+    rowIcon.style.filter = 'invert(60%) sepia(100%) saturate(0%)';
+    rowIcon.innerHTML = icon;
+    rowText.classList.add('style-scope');
+    rowText.classList.add('ytd-compact-link-renderer');
+    rowText.innerText = text;
+    row.append(rowIcon);
+    row.append(rowText);
+    return row;
+};
+
 const UsersCheckList = (listName, users, saveUsersState) => {
     const list = document.createElement('div');
     list.id = listName;
-    users.forEach(({ isChecked, name }) => {
+    users.forEach(({ isChecked, name, nickname }) => {
         const row = document.createElement('div');
         const checkbox = document.createElement('input');
         const costumCheckbox = document.createElement('span');
@@ -554,7 +657,7 @@ const UsersCheckList = (listName, users, saveUsersState) => {
         });
         username.style.fontSize = '18px';
         username.style.color = 'white';
-        username.textContent = name;
+        username.textContent = nickname;
         row.appendChild(checkbox);
         row.appendChild(costumCheckbox);
         row.appendChild(username);
@@ -578,6 +681,15 @@ const UsersModal = (id, users, saveUsersState) => {
 
 const PLAYLIST_API_ENDPOINT = 'https://playlists-api.vercel.app';
 const USERS_TAB_INDEX = 2;
+const VIDEO_GUARDS = [
+    'https://i.ytimg.com/vi/H9aC5AGY9YU/mqdefault.jpg',
+    'https://a.pinatafarm.com/1285x1280/997c9ae983/they-dont-know.jpg',
+    'https://pbs.twimg.com/profile_images/1509961758022139904/fXryqX_6_400x400.jpg',
+    'https://i.imgflip.com/54hjww.jpg?a462744',
+    'https://i.imgflip.com/6hyjp1.jpg',
+    'https://cdn.kapwing.com/collections/our-meme-template-fo6o2.jpg',
+    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu6ATV-nBqwWsMQqaPQF4Ui56X69AnAJbljA&usqp=CAU',
+];
 
 const styles = `
 .scroll-bar::-webkit-scrollbar {
@@ -594,7 +706,15 @@ const styles = `
 }
 
 .video-size {
-  padding: 0;
+  padding: 0px 0px !important;
+}
+
+.video-guard {
+  position: absolute;
+  z-index: 100;
+  top: 60px;
+  width: 400px;
+  height: 400px;
 }
 `;
 
@@ -724,13 +844,18 @@ const getSongsUsers = (songs, localUsers) => {
     }, []);
     return songsUsers.map((user) => {
         const sameLocalUser = localUsers.find((localUser) => localUser.name === user);
-        return { name: user, isChecked: !sameLocalUser || sameLocalUser.isChecked };
+        return {
+            name: user,
+            isChecked: !sameLocalUser || sameLocalUser.isChecked,
+            nickname: !!sameLocalUser ? sameLocalUser.nickname : user,
+        };
     });
 };
 const isSongSkipable = (video, videoDuration) => !!video && videoDuration > video.currentTime + 5;
 const isSongHeard = (video, videoDuration) => !!video && videoDuration < video.currentTime + 4;
 const isSongUserChecked = (users, currSong) => users.some((user) => user.isChecked && currSong.users.includes(user.name));
-const formatUsers = (usernames, users) => users.map(({ name }) => ({ name, isChecked: usernames.includes(name) }));
+const formatUsers = (usernames, users) => users.map((user) => (Object.assign(Object.assign({}, user), { isChecked: usernames.includes(user.name) })));
+const getRandomVideoGuard = () => VIDEO_GUARDS[Math.floor(Math.random() * VIDEO_GUARDS.length)];
 
 const style = document.createElement('style');
 style.innerHTML = styles;
@@ -761,11 +886,28 @@ const editPaylistImage = (imgUrl) => {
         .then(console.log);
     document.getElementById('img').src = imgUrl;
 };
+const editUserNickname = (user, nickname) => {
+    localPlaylist = Object.assign(Object.assign({}, localPlaylist), { users: ((localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || []).map((localUser) => (Object.assign(Object.assign({}, localUser), { nickname: localUser.name === user.name ? nickname : localUser.name }))) });
+    fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+        method: 'POST',
+        body: JSON.stringify({
+            playlistId,
+            playlistData: localPlaylist,
+        }),
+    })
+        .then((res) => res.json())
+        .then(console.log);
+};
 const saveUsersState = (id) => {
-    const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map((userCheckbox) => ({
-        name: userCheckbox.value,
-        isChecked: userCheckbox.checked,
-    }));
+    const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map((userCheckbox) => {
+        var _a;
+        return ({
+            name: userCheckbox.value,
+            isChecked: userCheckbox.checked,
+            nickname: ((_a = ((localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || []).find(({ name }) => userCheckbox.value === name)) === null || _a === void 0 ? void 0 : _a.nickname) ||
+                userCheckbox.value,
+        });
+    });
     localPlaylist = Object.assign(Object.assign({}, localPlaylist), { users });
     fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
         method: 'POST',
@@ -780,10 +922,15 @@ const saveUsersState = (id) => {
 const manageSongUsers = (id, song) => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     const songUsers = [];
-    const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map((userCheckbox) => ({
-        name: userCheckbox.value,
-        isChecked: userCheckbox.checked,
-    }));
+    const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map((userCheckbox) => {
+        var _a;
+        return ({
+            name: userCheckbox.value,
+            isChecked: userCheckbox.checked,
+            nickname: ((_a = ((localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || []).find(({ name }) => userCheckbox.value === name)) === null || _a === void 0 ? void 0 : _a.nickname) ||
+                userCheckbox.value,
+        });
+    });
     users.forEach((user) => {
         user.isChecked && songUsers.push(user.name);
     });
@@ -894,8 +1041,10 @@ const addSongUsersToTitle = (song) => {
     usersData.id = 'song-users-bar-id';
     usersData.classList.replace('advertisement', 'byline');
     usersData.style.whiteSpace = 'nowrap';
-    usersData.innerHTML !== `${song.users.join(', ')} •&nbsp;` &&
-        (usersData.innerHTML = `${song.users.join(', ')} •&nbsp;`);
+    const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
+    const usersNicknames = song.users.map((user) => { var _a; return (_a = localUsers.find((localUser) => localUser.name === user)) === null || _a === void 0 ? void 0 : _a.nickname; });
+    usersData.innerHTML !== `${usersNicknames.join(', ')} •&nbsp;` &&
+        (usersData.innerHTML = `${usersNicknames.join(', ')} •&nbsp;`);
     deleteTag(document.getElementById('like-button-renderer'));
     document.getElementsByClassName('middle-controls style-scope ytmusic-player-bar')[0].style.justifyContent = 'left';
 };
@@ -926,6 +1075,22 @@ const getShownSongDetails = () => {
 setInterval(() => {
     var _a, _b, _c;
     const pageUrl = location.href;
+    const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
+    const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
+    if (!!document.querySelector('yt-multi-page-menu-section-renderer') && !document.getElementById('edit-nickname')) {
+        document
+            .querySelector('yt-multi-page-menu-section-renderer')
+            .getElementsByClassName('style-scope yt-multi-page-menu-section-renderer')[3]
+            .prepend(UserDetailsRow('edit-nickname', 'Edit your nickname', editIcon, () => {
+            const currUsername = document.getElementById('account-name').innerText;
+            const currUser = localUsers.find(({ name }) => currUsername === name);
+            !!currUser &&
+                document.querySelector('body').append(EditModal('edit-user-nickname-modal', currUser.nickname, (ev) => {
+                    editUserNickname(currUser, ev.target.value);
+                }));
+            showModal('edit-user-nickname-modal');
+        }));
+    }
     if (isPlaylistPage(pageUrl)) {
         const playlistBottomShelf = document.querySelector('ytmusic-carousel-shelf-renderer');
         isTagExist(playlistBottomShelf) && deleteTag(playlistBottomShelf);
@@ -943,8 +1108,6 @@ setInterval(() => {
             .getElementsByClassName('subtitle')[0]
             .getElementsByClassName('byline')[0];
         if (isMusicShown) {
-            const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
-            const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
             const shownSongDetails = getShownSongDetails();
             const currSong = localSongs.find((localSong) => areSongsEqual(localSong, shownSongDetails));
             if ((!!(currSong === null || currSong === void 0 ? void 0 : currSong.isHeard) && isSongSkipable(document.querySelector('video'), currSong.length)) ||
@@ -953,12 +1116,9 @@ setInterval(() => {
         }
     }
     if (isSongsPage(pageUrl)) {
-        const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
         const selectionBar = document.getElementById('selectionBar');
-        if (!document.getElementsByClassName('video-size')) {
-            const mainPanel = document.getElementById('main-panel');
-            mainPanel.classList.add('video-size');
-        }
+        !document.getElementsByClassName('video-size').length &&
+            document.getElementById('main-panel').classList.add('video-size');
         if (!!localUsers.length &&
             !document.getElementById('songs-page-users') &&
             !!document.getElementById('side-panel-id')) {
@@ -975,6 +1135,19 @@ setInterval(() => {
             usersWrapper.id = 'users-wrapper';
             songsPageUsers.style.display = 'none';
             document.getElementById('side-panel-id').append(usersWrapper);
+        }
+        if (!document.getElementsByClassName('video-guard')[0] && !!document.querySelector('video')) {
+            const videoGuard = document.createElement('img');
+            videoGuard.src = getRandomVideoGuard();
+            videoGuard.classList.add('video-guard');
+            document.getElementById('main-panel').prepend(videoGuard);
+            const video = document.querySelector('video');
+            videoGuard.addEventListener('click', () => {
+                video.paused ? video.play() : video.pause();
+            });
+            setInterval(() => {
+                videoGuard.src = getRandomVideoGuard();
+            }, 100000);
         }
         if (!areSongPageUsersRelevant &&
             !!document.getElementById('users-wrapper') &&
@@ -1030,10 +1203,12 @@ setInterval(() => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
     if (isPlaylistPage(location.href)) {
-        if (!document.getElementsByClassName('animeme').length && !!document.getElementById('img')) {
+        if (!!(localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.img) &&
+            !document.getElementsByClassName('animeme').length &&
+            !!document.getElementById('img')) {
             const playlistImg = document.getElementById('img');
             playlistImg === null || playlistImg === void 0 ? void 0 : playlistImg.classList.add('animeme');
-            !!(localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.img) && (playlistImg.src = localPlaylist.img);
+            playlistImg.src = localPlaylist.img;
             playlistImg.style.cursor = 'pointer';
             playlistImg.addEventListener('mouseover', () => {
                 playlistImg.style.opacity = '0.7';
@@ -1048,6 +1223,13 @@ setInterval(() => {
                 showModal('edit-playlist-img');
             });
         }
+        if (!!document.getElementsByClassName('content style-scope ytmusic-alert-with-actions-renderer')[0] &&
+            !document.getElementById('certified-bruh-moment')) {
+            document.getElementsByClassName('content style-scope ytmusic-alert-with-actions-renderer')[0].id =
+                'certified-bruh-moment';
+            document.getElementById('certified-bruh-moment').innerText =
+                'You have permission to add garbage, we have permission to complain about it, bruh';
+        }
         !document.getElementById('get-down-button') &&
             document.querySelector('body').appendChild(FloatButton('get-down-button', () => {
                 (isGoingBottom ? returnToTop : getToBottom)();
@@ -1057,7 +1239,7 @@ setInterval(() => {
                 syncMusic();
             }, syncIcon));
         document.querySelectorAll('ytmusic-toggle-button-renderer').forEach((button) => {
-            button.innerHTML.toLowerCase().includes('add to library') &&
+            button.innerHTML.toLowerCase().includes('library') &&
                 document.getElementById('top-level-buttons').removeChild(button);
         });
         !document.getElementById('users-management-button') &&
@@ -1135,7 +1317,9 @@ setInterval(() => {
                 const songDuration = song.getElementsByClassName('duration')[0].innerText;
                 const songLength = getSongLength(songDuration);
                 const sameLocalSong = localSongs.find((localSong) => localSong.name === songName && localSong.length === songLength);
-                const rowText = ((sameLocalSong === null || sameLocalSong === void 0 ? void 0 : sameLocalSong.users) || []).join(', ');
+                const rowText = ((sameLocalSong === null || sameLocalSong === void 0 ? void 0 : sameLocalSong.users) || [])
+                    .map((user) => { var _a; return (_a = localUsers.find((localUser) => localUser.name === user)) === null || _a === void 0 ? void 0 : _a.nickname; })
+                    .join(', ');
                 const isSongShouldPlay = !(!!sameLocalSong &&
                     (sameLocalSong.isHeard || !isSongUserChecked(localUsers, sameLocalSong)));
                 song.style.opacity = isSongShouldPlay ? '1' : '0.3';

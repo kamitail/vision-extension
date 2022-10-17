@@ -1,3 +1,4 @@
+import { editIcon } from 'assets/edit-icon';
 import { resetIcon } from 'assets/reset-icon';
 import { statisticsIcon } from 'assets/statistics-icon';
 import { syncIcon } from 'assets/sync-icon';
@@ -7,6 +8,7 @@ import { QueueRow } from 'components/QueueRow';
 import { QueueTab } from 'components/QueueTab';
 import { StatisticsModal } from 'components/StatisticsModal';
 import { TooltipItem } from 'components/TooltipItem';
+import { UserDetailsRow } from 'components/UserDetailsRow';
 import { UsersCheckList } from 'components/UsersCheckList';
 import { UsersModal } from 'components/UsersModal';
 import { PLAYLIST_API_ENDPOINT, USERS_TAB_INDEX } from 'constants';
@@ -21,6 +23,7 @@ import {
   formatUsers,
   getPlaylistId,
   getPlaylistTotalTime,
+  getRandomVideoGuard,
   getSongId,
   getSongLength,
   getSongsUsers,
@@ -42,8 +45,10 @@ let getToBottomInterval: number;
 let isGoingBottom: boolean = false;
 let queueSongInAction: Song;
 let songElementInAction: Element;
+
 let playlistId: string;
 let localPlaylist: Playlist;
+
 let songPageTabIndex: number = 0;
 let areSongPageUsersRelevant: boolean = true;
 let arePlaylistPageUsersRelevant: boolean = true;
@@ -69,11 +74,34 @@ const editPaylistImage = (imgUrl: string) => {
   (document.getElementById('img') as HTMLImageElement).src = imgUrl;
 };
 
+const editUserNickname = (user: User, nickname: string) => {
+  localPlaylist = {
+    ...localPlaylist,
+    users: (localPlaylist?.users || []).map((localUser) => ({
+      ...localUser,
+      nickname: localUser.name === user.name ? nickname : localUser.name,
+    })),
+  };
+
+  fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
+    method: 'POST',
+    body: JSON.stringify({
+      playlistId,
+      playlistData: localPlaylist,
+    }),
+  })
+    .then((res) => res.json())
+    .then(console.log);
+};
+
 const saveUsersState = (id: string) => {
   const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map(
     (userCheckbox: Element): User => ({
       name: (userCheckbox as HTMLInputElement).value,
       isChecked: (userCheckbox as HTMLInputElement).checked,
+      nickname:
+        (localPlaylist?.users || []).find(({ name }) => (userCheckbox as HTMLInputElement).value === name)?.nickname ||
+        (userCheckbox as HTMLInputElement).value,
     }),
   );
 
@@ -98,6 +126,9 @@ const manageSongUsers = (id: string, song: Song): string[] => {
     (userCheckbox: Element): User => ({
       name: (userCheckbox as HTMLInputElement).value,
       isChecked: (userCheckbox as HTMLInputElement).checked,
+      nickname:
+        (localPlaylist?.users || []).find(({ name }) => (userCheckbox as HTMLInputElement).value === name)?.nickname ||
+        (userCheckbox as HTMLInputElement).value,
     }),
   );
 
@@ -261,8 +292,11 @@ const addSongUsersToTitle = (song: Song) => {
   usersData.id = 'song-users-bar-id';
   usersData.classList.replace('advertisement', 'byline');
   usersData.style.whiteSpace = 'nowrap';
-  usersData.innerHTML !== `${song.users.join(', ')} •&nbsp;` &&
-    (usersData.innerHTML = `${song.users.join(', ')} •&nbsp;`);
+
+  const localUsers = localPlaylist?.users || [];
+  const usersNicknames = song.users.map((user) => localUsers.find((localUser) => localUser.name === user)?.nickname);
+  usersData.innerHTML !== `${usersNicknames.join(', ')} •&nbsp;` &&
+    (usersData.innerHTML = `${usersNicknames.join(', ')} •&nbsp;`);
 
   deleteTag(document.getElementById('like-button-renderer')!);
   (
@@ -304,6 +338,28 @@ const getShownSongDetails = (): Song => {
 
 setInterval(() => {
   const pageUrl = location.href;
+  const localSongs: Song[] = localPlaylist?.songs || [];
+  const localUsers: User[] = localPlaylist?.users || [];
+
+  if (!!document.querySelector('yt-multi-page-menu-section-renderer') && !document.getElementById('edit-nickname')) {
+    document
+      .querySelector('yt-multi-page-menu-section-renderer')!
+      .getElementsByClassName('style-scope yt-multi-page-menu-section-renderer')[3]
+      .prepend(
+        UserDetailsRow('edit-nickname', 'Edit your nickname', editIcon, () => {
+          const currUsername: string = document.getElementById('account-name')!.innerText;
+          const currUser: User | undefined = localUsers.find(({ name }) => currUsername === name);
+
+          !!currUser &&
+            document.querySelector('body')!.append(
+              EditModal('edit-user-nickname-modal', currUser.nickname, (ev) => {
+                editUserNickname(currUser, (ev.target as HTMLInputElement).value);
+              }),
+            );
+          showModal('edit-user-nickname-modal');
+        }),
+      );
+  }
 
   if (isPlaylistPage(pageUrl)) {
     const playlistBottomShelf = document.querySelector('ytmusic-carousel-shelf-renderer');
@@ -325,9 +381,6 @@ setInterval(() => {
       .getElementsByClassName('byline')[0];
 
     if (isMusicShown) {
-      const localSongs: Song[] = localPlaylist?.songs || [];
-      const localUsers: User[] = localPlaylist?.users || [];
-
       const shownSongDetails: Song = getShownSongDetails();
       const currSong: Song | undefined = localSongs.find((localSong) => areSongsEqual(localSong, shownSongDetails));
 
@@ -340,13 +393,10 @@ setInterval(() => {
   }
 
   if (isSongsPage(pageUrl)) {
-    const localUsers: User[] = localPlaylist?.users || [];
     const selectionBar: HTMLElement = document.getElementById('selectionBar')!;
 
-    if (!document.getElementsByClassName('video-size')) {
-      const mainPanel: HTMLElement = document.getElementById('main-panel')!;
-      mainPanel.classList.add('video-size');
-    }
+    !document.getElementsByClassName('video-size').length &&
+      document.getElementById('main-panel')!.classList.add('video-size');
 
     if (
       !!localUsers.length &&
@@ -368,6 +418,23 @@ setInterval(() => {
 
       songsPageUsers.style.display = 'none';
       document.getElementById('side-panel-id')!.append(usersWrapper);
+    }
+
+    if (!document.getElementsByClassName('video-guard')[0] && !!document.querySelector('video')) {
+      const videoGuard: HTMLImageElement = document.createElement('img');
+      videoGuard.src = getRandomVideoGuard();
+      videoGuard.classList.add('video-guard');
+      document.getElementById('main-panel')!.prepend(videoGuard);
+
+      const video = document.querySelector('video')!;
+
+      videoGuard.addEventListener('click', () => {
+        video.paused ? video.play() : video.pause();
+      });
+
+      setInterval(() => {
+        videoGuard.src = getRandomVideoGuard();
+      }, 100000);
     }
 
     if (
@@ -445,10 +512,14 @@ setInterval(() => {
   const localUsers: User[] = localPlaylist?.users || [];
 
   if (isPlaylistPage(location.href)) {
-    if (!document.getElementsByClassName('animeme').length && !!document.getElementById('img')) {
+    if (
+      !!localPlaylist?.img &&
+      !document.getElementsByClassName('animeme').length &&
+      !!document.getElementById('img')
+    ) {
       const playlistImg: HTMLImageElement = document.getElementById('img') as HTMLImageElement;
       playlistImg?.classList.add('animeme');
-      !!localPlaylist?.img && (playlistImg.src = localPlaylist.img);
+      playlistImg.src = localPlaylist.img;
       playlistImg.style.cursor = 'pointer';
 
       playlistImg.addEventListener('mouseover', () => {
@@ -467,6 +538,16 @@ setInterval(() => {
         );
         showModal('edit-playlist-img');
       });
+    }
+
+    if (
+      !!document.getElementsByClassName('content style-scope ytmusic-alert-with-actions-renderer')[0] &&
+      !document.getElementById('certified-bruh-moment')
+    ) {
+      document.getElementsByClassName('content style-scope ytmusic-alert-with-actions-renderer')[0].id =
+        'certified-bruh-moment';
+      document.getElementById('certified-bruh-moment')!.innerText =
+        'You have permission to add garbage, we have permission to complain about it, bruh';
     }
 
     !document.getElementById('get-down-button') &&
@@ -489,7 +570,7 @@ setInterval(() => {
       );
 
     document.querySelectorAll('ytmusic-toggle-button-renderer').forEach((button) => {
-      button.innerHTML.toLowerCase().includes('add to library') &&
+      button.innerHTML.toLowerCase().includes('library') &&
         document.getElementById('top-level-buttons')!.removeChild(button);
     });
 
@@ -624,7 +705,9 @@ setInterval(() => {
           (localSong: Song) => localSong.name === songName && localSong.length === songLength,
         );
 
-        const rowText: string = (sameLocalSong?.users || []).join(', ');
+        const rowText: string = (sameLocalSong?.users || [])
+          .map((user) => localUsers.find((localUser) => localUser.name === user)?.nickname)
+          .join(', ');
 
         const isSongShouldPlay: boolean = !(
           !!sameLocalSong &&

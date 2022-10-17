@@ -49,6 +49,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
       if (currTabIndex === 0 && index === 0) {
         const row: HTMLDivElement = document.createElement('div');
         const username: HTMLDivElement = document.createElement('div');
+        const nickname: HTMLDivElement = document.createElement('div');
         const songsQuantity: HTMLDivElement = document.createElement('div');
         const heardSongsQuantity: HTMLDivElement = document.createElement('div');
         const breakLine: HTMLHRElement = document.createElement('hr');
@@ -64,6 +65,13 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         username.style.textAlign = 'left';
         username.style.fontWeight = '500';
         username.innerText = 'Username';
+
+        nickname.style.width = '20%';
+        nickname.style.color = 'white';
+        nickname.style.fontSize = '18px';
+        nickname.style.textAlign = 'left';
+        nickname.style.fontWeight = '500';
+        nickname.innerText = 'Nickname';
 
         songsQuantity.style.width = '20%';
         songsQuantity.style.color = 'white';
@@ -84,6 +92,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         breakLine.style.marginBottom = '5px';
 
         row.append(username);
+        row.append(nickname);
         row.append(songsQuantity);
         row.append(heardSongsQuantity);
         statsContent.append(row);
@@ -92,6 +101,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         users.forEach((user: User) => {
           const row: HTMLDivElement = document.createElement('div');
           const username: HTMLDivElement = document.createElement('div');
+          const nickname: HTMLDivElement = document.createElement('div');
           const songsQuantityElem: HTMLDivElement = document.createElement('div');
           const heardSongsQuantityElem: HTMLDivElement = document.createElement('div');
           const breakLine: HTMLHRElement = document.createElement('hr');
@@ -111,6 +121,12 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
           username.style.textAlign = 'left';
           username.innerText = user.name;
 
+          nickname.style.width = '20%';
+          nickname.style.color = 'white';
+          nickname.style.fontSize = '18px';
+          nickname.style.textAlign = 'left';
+          nickname.innerText = user.nickname;
+
           songsQuantityElem.style.width = '20%';
           songsQuantityElem.style.color = 'white';
           songsQuantityElem.style.fontSize = '18px';
@@ -128,6 +144,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
           breakLine.style.marginBottom = '10px';
 
           row.append(username);
+          row.append(nickname);
           row.append(songsQuantityElem);
           row.append(heardSongsQuantityElem);
           statsContent.append(row);
