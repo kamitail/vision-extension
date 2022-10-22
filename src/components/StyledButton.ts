@@ -13,6 +13,7 @@ export const StyledButton = (id: string, buttonText: string, clickAction: (ev: M
   button.style.padding = '0.7em 1.25em 0.7em 0.7em';
   button.style.borderRadius = '2px';
   button.style.boxSizing = 'border-box';
+  button.style.whiteSpace = 'nowrap';
   button.innerHTML = icon;
   button.innerHTML += buttonText;
   button.addEventListener('click', clickAction);
