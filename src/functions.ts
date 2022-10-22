@@ -1,7 +1,6 @@
 import { Song } from './types/song';
 import { last, sumBy } from './functions/generic-use';
 import { User } from 'types/user';
-import { VIDEO_GUARDS } from 'constants';
 
 export const isTagExist = (tagContent: Element | null): tagContent is Element =>
   !!tagContent && tagContent.innerHTML !== '';
@@ -121,5 +120,3 @@ export const isSongUserChecked = (users: User[], currSong: Song): boolean =>
 
 export const formatUsers = (usernames: string[], users: User[]) =>
   users.map((user: User): User => ({ ...user, isChecked: usernames.includes(user.name) }));
-
-export const getRandomVideoGuard = () => VIDEO_GUARDS[Math.floor(Math.random() * VIDEO_GUARDS.length)];

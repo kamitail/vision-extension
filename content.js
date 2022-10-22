@@ -680,16 +680,8 @@ const UsersModal = (id, users, saveUsersState) => {
 };
 
 const PLAYLIST_API_ENDPOINT = 'https://playlists-api.vercel.app';
+const PLAYLISTS_WEBSOCKET_ENDPOINT = 'ws://localhost:7071/ws';
 const USERS_TAB_INDEX = 2;
-const VIDEO_GUARDS = [
-    'https://i.ytimg.com/vi/H9aC5AGY9YU/mqdefault.jpg',
-    'https://a.pinatafarm.com/1285x1280/997c9ae983/they-dont-know.jpg',
-    'https://pbs.twimg.com/profile_images/1509961758022139904/fXryqX_6_400x400.jpg',
-    'https://i.imgflip.com/54hjww.jpg?a462744',
-    'https://i.imgflip.com/6hyjp1.jpg',
-    'https://cdn.kapwing.com/collections/our-meme-template-fo6o2.jpg',
-    'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQu6ATV-nBqwWsMQqaPQF4Ui56X69AnAJbljA&usqp=CAU',
-];
 
 const styles = `
 .scroll-bar::-webkit-scrollbar {
@@ -758,6 +750,7 @@ const StyledButton = (id, buttonText, clickAction, icon) => {
     button.style.padding = '0.7em 1.25em 0.7em 0.7em';
     button.style.borderRadius = '2px';
     button.style.boxSizing = 'border-box';
+    button.style.whiteSpace = 'nowrap';
     button.innerHTML = icon;
     button.innerHTML += buttonText;
     button.addEventListener('click', clickAction);
@@ -855,11 +848,41 @@ const isSongSkipable = (video, videoDuration) => !!video && videoDuration > vide
 const isSongHeard = (video, videoDuration) => !!video && videoDuration < video.currentTime + 4;
 const isSongUserChecked = (users, currSong) => users.some((user) => user.isChecked && currSong.users.includes(user.name));
 const formatUsers = (usernames, users) => users.map((user) => (Object.assign(Object.assign({}, user), { isChecked: usernames.includes(user.name) })));
-const getRandomVideoGuard = () => VIDEO_GUARDS[Math.floor(Math.random() * VIDEO_GUARDS.length)];
+
+const rerenderPlaylistImage = () => {
+    var _a;
+    return !!document.getElementById('img') &&
+        ((_a = document.getElementById('img')) === null || _a === void 0 ? void 0 : _a.classList.contains('animeme')) &&
+        document.getElementById('img').classList.remove('animeme');
+};
+const rerenderUsersManagementModal = () => { var _a; return !!document.getElementById('users-modal') && ((_a = document.getElementById('users-modal')) === null || _a === void 0 ? void 0 : _a.remove()); };
+const rerenderPlaylistTime = () => !!document.getElementById('playlist-length') &&
+    (document.getElementById('playlist-length').id = 'not-playlist-length');
+const rerenderSongsPageUsers = () => {
+    var _a, _b;
+    if (!document.getElementById('songs-page-users'))
+        return;
+    (_a = document.getElementById('songs-page-users')) === null || _a === void 0 ? void 0 : _a.remove();
+    (_b = document.getElementById('users-wrapper')) === null || _b === void 0 ? void 0 : _b.remove();
+};
+const localPlaylistChangedRender = () => {
+    rerenderPlaylistImage();
+    rerenderUsersManagementModal();
+    rerenderPlaylistTime();
+    rerenderSongsPageUsers();
+};
 
 const style = document.createElement('style');
 style.innerHTML = styles;
 document.getElementsByTagName('HEAD')[0].appendChild(style);
+const ws = new WebSocket(PLAYLISTS_WEBSOCKET_ENDPOINT);
+ws.onmessage = (webSocketMessage) => {
+    const socketPlaylist = JSON.parse(webSocketMessage.data);
+    if (socketPlaylist.id !== localPlaylist.id)
+        return;
+    localPlaylist = socketPlaylist;
+    localPlaylistChangedRender();
+};
 let getToBottomInterval;
 let isGoingBottom = false;
 let queueSongInAction;
@@ -884,10 +907,11 @@ const editPaylistImage = (imgUrl) => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
     document.getElementById('img').src = imgUrl;
 };
 const editUserNickname = (user, nickname) => {
-    localPlaylist = Object.assign(Object.assign({}, localPlaylist), { users: ((localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || []).map((localUser) => (Object.assign(Object.assign({}, localUser), { nickname: localUser.name === user.name ? nickname : localUser.name }))) });
+    localPlaylist = Object.assign(Object.assign({}, localPlaylist), { users: ((localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || []).map((localUser) => (Object.assign(Object.assign({}, localUser), { nickname: localUser.name === user.name ? nickname : localUser.nickname }))) });
     fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
         method: 'POST',
         body: JSON.stringify({
@@ -897,6 +921,7 @@ const editUserNickname = (user, nickname) => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
 };
 const saveUsersState = (id) => {
     const users = [...document.getElementsByClassName(`${id}-user-checkbox`)].map((userCheckbox) => {
@@ -918,6 +943,7 @@ const saveUsersState = (id) => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
 };
 const manageSongUsers = (id, song) => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
@@ -944,6 +970,7 @@ const manageSongUsers = (id, song) => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
     return songUsers;
 };
 const returnToTop = () => {
@@ -970,6 +997,7 @@ const resetAllHeardSongs = () => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
 };
 const resetHeardSong = (song) => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
@@ -983,6 +1011,7 @@ const resetHeardSong = (song) => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
 };
 const hearSong = (song) => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
@@ -996,6 +1025,7 @@ const hearSong = (song) => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
 };
 const skipSong = () => {
     document
@@ -1008,12 +1038,12 @@ const syncMusic = () => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
     const formattedSongsElements = formatSongsElements(songsElements, localSongs);
-    if (((localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || []).length > formatSongsElements.length) {
+    if (localSongs.length > formattedSongsElements.length) {
         alert("You didn't collect enough songs");
         return;
     }
     const songsUsers = getSongsUsers(formattedSongsElements, localUsers);
-    localPlaylist = Object.assign(Object.assign({}, localPlaylist), { songs: formattedSongsElements, users: songsUsers });
+    localPlaylist = Object.assign(Object.assign({}, localPlaylist), { songs: formattedSongsElements, users: songsUsers, id: playlistId });
     fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
         method: 'POST',
         body: JSON.stringify({
@@ -1023,6 +1053,7 @@ const syncMusic = () => {
     })
         .then((res) => res.json())
         .then(console.log);
+    ws.send(JSON.stringify(localPlaylist));
     document
         .getElementsByClassName('metadata')[0]
         .getElementsByClassName('second-subtitle')[0]
@@ -1073,7 +1104,7 @@ const getShownSongDetails = () => {
     };
 };
 setInterval(() => {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     const pageUrl = location.href;
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
@@ -1094,6 +1125,16 @@ setInterval(() => {
     if (isPlaylistPage(pageUrl)) {
         const playlistBottomShelf = document.querySelector('ytmusic-carousel-shelf-renderer');
         isTagExist(playlistBottomShelf) && deleteTag(playlistBottomShelf);
+        if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
+            !document.getElementById('change-song-users') &&
+                ((_a = document.querySelector('tp-yt-paper-listbox')) === null || _a === void 0 ? void 0 : _a.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
+                    !document.getElementById('song-users-modal') &&
+                        document.querySelector('body').appendChild(UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
+                            queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
+                        }));
+                    showModal('song-users-modal');
+                })));
+        }
     }
     if (isPlaylistPage(pageUrl) || isSongsPage(pageUrl)) {
         if (playlistId !== getPlaylistId(pageUrl)) {
@@ -1133,25 +1174,12 @@ setInterval(() => {
             usersWrapper.classList.add('ytmusic-player-page');
             usersWrapper.append(songsPageUsers);
             usersWrapper.id = 'users-wrapper';
-            songsPageUsers.style.display = 'none';
+            songsPageUsers.style.display = songPageTabIndex !== USERS_TAB_INDEX ? 'none' : 'block';
             document.getElementById('side-panel-id').append(usersWrapper);
-        }
-        if (!document.getElementsByClassName('video-guard')[0] && !!document.querySelector('video')) {
-            const videoGuard = document.createElement('img');
-            videoGuard.src = getRandomVideoGuard();
-            videoGuard.classList.add('video-guard');
-            document.getElementById('main-panel').prepend(videoGuard);
-            const video = document.querySelector('video');
-            videoGuard.addEventListener('click', () => {
-                video.paused ? video.play() : video.pause();
-            });
-            setInterval(() => {
-                videoGuard.src = getRandomVideoGuard();
-            }, 100000);
         }
         if (!areSongPageUsersRelevant &&
             !!document.getElementById('users-wrapper') &&
-            ((_a = document.getElementById('users-wrapper')) === null || _a === void 0 ? void 0 : _a.contains(document.getElementById('songs-page-users')))) {
+            ((_b = document.getElementById('users-wrapper')) === null || _b === void 0 ? void 0 : _b.contains(document.getElementById('songs-page-users')))) {
             const songsPageUsers = UsersCheckList('songs-page-users', localUsers, () => {
                 saveUsersState('songs-page-users');
                 arePlaylistPageUsersRelevant = false;
@@ -1178,15 +1206,15 @@ setInterval(() => {
             });
             renderTabs();
         }
-        if (!!document.querySelector('tp-yt-paper-listbox')) {
+        if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
             !document.getElementById('reset-is-heard') &&
                 (queueSongInAction === null || queueSongInAction === void 0 ? void 0 : queueSongInAction.isHeard) &&
-                ((_b = document.querySelector('tp-yt-paper-listbox')) === null || _b === void 0 ? void 0 : _b.prepend(TooltipItem('reset-is-heard', 'Reset Hearing', () => {
+                ((_c = document.querySelector('tp-yt-paper-listbox')) === null || _c === void 0 ? void 0 : _c.prepend(TooltipItem('reset-is-heard', 'Reset Hearing', () => {
                     resetHeardSong(queueSongInAction);
                     queueSongInAction.isHeard = false;
                 })));
             !document.getElementById('change-song-users') &&
-                ((_c = document.querySelector('tp-yt-paper-listbox')) === null || _c === void 0 ? void 0 : _c.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
+                ((_d = document.querySelector('tp-yt-paper-listbox')) === null || _d === void 0 ? void 0 : _d.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
                     !document.getElementById('song-users-modal') &&
                         document.querySelector('body').appendChild(UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
                             queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
@@ -1203,6 +1231,39 @@ setInterval(() => {
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
     if (isPlaylistPage(location.href)) {
+        if (!document.getElementById('playlist-menu')) {
+            const playlistMenu = document.getElementsByClassName('dropdown-trigger style-scope ytmusic-menu-renderer')[0];
+            playlistMenu.id = 'playlist-menu';
+            playlistMenu.addEventListener('click', () => {
+                queueSongInAction = null;
+            });
+        }
+        if (!!document.querySelectorAll('ytmusic-responsive-list-item-renderer').length) {
+            const songsElements = document.querySelectorAll('ytmusic-responsive-list-item-renderer');
+            [...songsElements].forEach((song, index) => {
+                try {
+                    const songData = song.getElementsByClassName('flex-columns')[0];
+                    const songTitle = songData
+                        .getElementsByClassName('title-column')[0]
+                        .querySelectorAll('yt-formatted-string')[0];
+                    const songLink = songTitle.querySelector('a').href;
+                    const songId = getSongId(songLink);
+                    const sameLocalSong = localSongs.find(({ id }) => id === songId);
+                    if (!sameLocalSong || !!document.getElementById(`song-menu-${index}`))
+                        return;
+                    song
+                        .querySelector('ytmusic-menu-renderer')
+                        .querySelectorAll('tp-yt-paper-icon-button')[2].id = `song-menu-${index}`;
+                    document.getElementById(`song-menu-${index}`).addEventListener('click', () => {
+                        queueSongInAction = sameLocalSong;
+                        console.log(sameLocalSong);
+                    });
+                }
+                catch (error) {
+                    return;
+                }
+            });
+        }
         if (!!(localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.img) &&
             !document.getElementsByClassName('animeme').length &&
             !!document.getElementById('img')) {

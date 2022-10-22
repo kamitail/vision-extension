@@ -11,7 +11,7 @@ import { TooltipItem } from 'components/TooltipItem';
 import { UserDetailsRow } from 'components/UserDetailsRow';
 import { UsersCheckList } from 'components/UsersCheckList';
 import { UsersModal } from 'components/UsersModal';
-import { PLAYLIST_API_ENDPOINT, USERS_TAB_INDEX } from 'constants';
+import { PLAYLISTS_WEBSOCKET_ENDPOINT, PLAYLIST_API_ENDPOINT, USERS_TAB_INDEX } from './constants';
 import { styles } from 'styles';
 import { User } from 'types/user';
 import { FloatButton } from './components/FloatButton';
@@ -23,7 +23,6 @@ import {
   formatUsers,
   getPlaylistId,
   getPlaylistTotalTime,
-  getRandomVideoGuard,
   getSongId,
   getSongLength,
   getSongsUsers,
@@ -36,14 +35,24 @@ import {
 } from './functions';
 import { Playlist } from './types/playlist';
 import { Song } from './types/song';
+import { localPlaylistChangedRender } from 'functions/re-renders';
 
 const style = document.createElement('style');
 style.innerHTML = styles;
 document.getElementsByTagName('HEAD')[0].appendChild(style);
 
-let getToBottomInterval: number;
+const ws = new WebSocket(PLAYLISTS_WEBSOCKET_ENDPOINT);
+
+ws.onmessage = (webSocketMessage) => {
+  const socketPlaylist: Playlist = JSON.parse(webSocketMessage.data);
+  if (socketPlaylist.id !== localPlaylist.id) return;
+  localPlaylist = socketPlaylist;
+  localPlaylistChangedRender();
+};
+
+let getToBottomInterval: any;
 let isGoingBottom: boolean = false;
-let queueSongInAction: Song;
+let queueSongInAction: Song | null;
 let songElementInAction: Element;
 
 let playlistId: string;
@@ -70,6 +79,7 @@ const editPaylistImage = (imgUrl: string) => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 
   (document.getElementById('img') as HTMLImageElement).src = imgUrl;
 };
@@ -79,7 +89,7 @@ const editUserNickname = (user: User, nickname: string) => {
     ...localPlaylist,
     users: (localPlaylist?.users || []).map((localUser) => ({
       ...localUser,
-      nickname: localUser.name === user.name ? nickname : localUser.name,
+      nickname: localUser.name === user.name ? nickname : localUser.nickname,
     })),
   };
 
@@ -92,6 +102,7 @@ const editUserNickname = (user: User, nickname: string) => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 };
 
 const saveUsersState = (id: string) => {
@@ -116,6 +127,7 @@ const saveUsersState = (id: string) => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 };
 
 const manageSongUsers = (id: string, song: Song): string[] => {
@@ -155,6 +167,7 @@ const manageSongUsers = (id: string, song: Song): string[] => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 
   return songUsers;
 };
@@ -191,6 +204,7 @@ const resetAllHeardSongs = () => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 };
 
 const resetHeardSong = (song: Song) => {
@@ -212,6 +226,7 @@ const resetHeardSong = (song: Song) => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 };
 
 const hearSong = (song: Song) => {
@@ -233,6 +248,7 @@ const hearSong = (song: Song) => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 };
 
 const skipSong = () => {
@@ -250,13 +266,13 @@ const syncMusic = () => {
   const localUsers: User[] = localPlaylist?.users || [];
   const formattedSongsElements: Song[] = formatSongsElements(songsElements, localSongs);
 
-  if ((localPlaylist?.songs || []).length > formatSongsElements.length) {
+  if (localSongs.length > formattedSongsElements.length) {
     alert("You didn't collect enough songs");
     return;
   }
 
   const songsUsers: User[] = getSongsUsers(formattedSongsElements, localUsers);
-  localPlaylist = { ...localPlaylist, songs: formattedSongsElements, users: songsUsers };
+  localPlaylist = { ...localPlaylist, songs: formattedSongsElements, users: songsUsers, id: playlistId };
 
   fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
     method: 'POST',
@@ -267,6 +283,7 @@ const syncMusic = () => {
   })
     .then((res) => res.json())
     .then(console.log);
+  ws.send(JSON.stringify(localPlaylist));
 
   document
     .getElementsByClassName('metadata')[0]
@@ -364,6 +381,21 @@ setInterval(() => {
   if (isPlaylistPage(pageUrl)) {
     const playlistBottomShelf = document.querySelector('ytmusic-carousel-shelf-renderer');
     isTagExist(playlistBottomShelf) && deleteTag(playlistBottomShelf);
+
+    if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
+      !document.getElementById('change-song-users') &&
+        document.querySelector('tp-yt-paper-listbox')?.prepend(
+          TooltipItem('change-song-users', "Song's Users Management", () => {
+            !document.getElementById('song-users-modal') &&
+              document.querySelector('body')!.appendChild(
+                UsersModal('song-users-modal', formatUsers(queueSongInAction!.users || [], localUsers), () => {
+                  queueSongInAction!.users = manageSongUsers('song-users-modal', queueSongInAction!);
+                }),
+              );
+            showModal('song-users-modal');
+          }),
+        );
+    }
   }
 
   if (isPlaylistPage(pageUrl) || isSongsPage(pageUrl)) {
@@ -416,25 +448,8 @@ setInterval(() => {
       usersWrapper.append(songsPageUsers);
       usersWrapper.id = 'users-wrapper';
 
-      songsPageUsers.style.display = 'none';
+      songsPageUsers.style.display = songPageTabIndex !== USERS_TAB_INDEX ? 'none' : 'block';
       document.getElementById('side-panel-id')!.append(usersWrapper);
-    }
-
-    if (!document.getElementsByClassName('video-guard')[0] && !!document.querySelector('video')) {
-      const videoGuard: HTMLImageElement = document.createElement('img');
-      videoGuard.src = getRandomVideoGuard();
-      videoGuard.classList.add('video-guard');
-      document.getElementById('main-panel')!.prepend(videoGuard);
-
-      const video = document.querySelector('video')!;
-
-      videoGuard.addEventListener('click', () => {
-        video.paused ? video.play() : video.pause();
-      });
-
-      setInterval(() => {
-        videoGuard.src = getRandomVideoGuard();
-      }, 100000);
     }
 
     if (
@@ -479,13 +494,13 @@ setInterval(() => {
       renderTabs();
     }
 
-    if (!!document.querySelector('tp-yt-paper-listbox')) {
+    if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
       !document.getElementById('reset-is-heard') &&
         queueSongInAction?.isHeard &&
         document.querySelector('tp-yt-paper-listbox')?.prepend(
           TooltipItem('reset-is-heard', 'Reset Hearing', () => {
-            resetHeardSong(queueSongInAction);
-            queueSongInAction.isHeard = false;
+            resetHeardSong(queueSongInAction!);
+            queueSongInAction!.isHeard = false;
           }),
         );
 
@@ -494,9 +509,9 @@ setInterval(() => {
           TooltipItem('change-song-users', "Song's Users Management", () => {
             !document.getElementById('song-users-modal') &&
               document.querySelector('body')!.appendChild(
-                UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
-                  queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
-                  songElementInAction.innerHTML = (queueSongInAction.users || []).join(', ');
+                UsersModal('song-users-modal', formatUsers(queueSongInAction!.users || [], localUsers), () => {
+                  queueSongInAction!.users = manageSongUsers('song-users-modal', queueSongInAction!);
+                  songElementInAction.innerHTML = (queueSongInAction!.users || []).join(', ');
                 }),
               );
             showModal('song-users-modal');
@@ -512,6 +527,48 @@ setInterval(() => {
   const localUsers: User[] = localPlaylist?.users || [];
 
   if (isPlaylistPage(location.href)) {
+    if (!document.getElementById('playlist-menu')) {
+      const playlistMenu: Element = document.getElementsByClassName(
+        'dropdown-trigger style-scope ytmusic-menu-renderer',
+      )[0];
+
+      playlistMenu.id = 'playlist-menu';
+      playlistMenu.addEventListener('click', () => {
+        queueSongInAction = null;
+      });
+    }
+
+    if (!!document.querySelectorAll('ytmusic-responsive-list-item-renderer').length) {
+      const songsElements: NodeListOf<Element> = document.querySelectorAll('ytmusic-responsive-list-item-renderer');
+      [...songsElements].forEach((song: Element, index: number) => {
+        try {
+          const songData: Element = song.getElementsByClassName('flex-columns')[0];
+
+          const songTitle: HTMLElement = songData
+            .getElementsByClassName('title-column')[0]
+            .querySelectorAll<HTMLElement>('yt-formatted-string')[0];
+
+          const songLink: string = songTitle.querySelector('a')!.href;
+          const songId = getSongId(songLink);
+
+          const sameLocalSong: Song | undefined = localSongs.find(({ id }) => id === songId);
+
+          if (!sameLocalSong || !!document.getElementById(`song-menu-${index}`)) return;
+
+          song
+            .querySelector('ytmusic-menu-renderer')!
+            .querySelectorAll('tp-yt-paper-icon-button')[2].id = `song-menu-${index}`;
+
+          document.getElementById(`song-menu-${index}`)!.addEventListener('click', () => {
+            queueSongInAction = sameLocalSong;
+            console.log(sameLocalSong);
+          });
+        } catch (error) {
+          return;
+        }
+      });
+    }
+
     if (
       !!localPlaylist?.img &&
       !document.getElementsByClassName('animeme').length &&
