@@ -1241,7 +1241,10 @@ const resetHeardSong = (song) => {
         .then(console.log);
     ws.send(JSON.stringify(localPlaylist));
 };
-const hearSong = (song) => {
+const hearSong = async (song) => {
+    await fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+        .then((res) => res.json())
+        .then((data) => (localPlaylist = data));
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     localPlaylist = Object.assign(Object.assign({}, localPlaylist), { songs: localSongs.map((localSong) => (Object.assign(Object.assign({}, localSong), { isHeard: areSongsEqual(localSong, song) || localSong.isHeard }))) });
     fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
@@ -1267,7 +1270,7 @@ const syncMusic = () => {
     const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
     const formattedSongsElements = formatSongsElements(songsElements, localSongs);
     if (localSongs.length > formattedSongsElements.length) {
-        alert("You didn't collect enough songs");
+        alert('You didn\'t collect enough songs');
         return;
     }
     const songsUsers = getSongsUsers(formattedSongsElements, localUsers);
@@ -1355,7 +1358,7 @@ setInterval(() => {
         isTagExist(playlistBottomShelf) && deleteTag(playlistBottomShelf);
         if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
             !document.getElementById('change-song-users') &&
-                ((_a = document.querySelector('tp-yt-paper-listbox')) === null || _a === void 0 ? void 0 : _a.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
+                ((_a = document.querySelector('tp-yt-paper-listbox')) === null || _a === void 0 ? void 0 : _a.prepend(TooltipItem('change-song-users', 'Song\'s Users Management', () => {
                     !document.getElementById('song-users-modal') &&
                         document.querySelector('body').appendChild(UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
                             queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
@@ -1380,8 +1383,12 @@ setInterval(() => {
             const shownSongDetails = getShownSongDetails();
             const currSong = localSongs.find((localSong) => areSongsEqual(localSong, shownSongDetails));
             if ((!!(currSong === null || currSong === void 0 ? void 0 : currSong.isHeard) && isSongSkipable(document.querySelector('video'), currSong.length)) ||
-                (!!currSong && !isSongUserChecked(localUsers, currSong)))
+                (!!currSong && !isSongUserChecked(localUsers, currSong))) {
                 skipSong();
+                fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+                    .then((res) => res.json())
+                    .then((data) => (localPlaylist = data));
+            }
         }
     }
     if (isSongsPage(pageUrl)) {
@@ -1442,7 +1449,7 @@ setInterval(() => {
                     queueSongInAction.isHeard = false;
                 })));
             !document.getElementById('change-song-users') &&
-                ((_d = document.querySelector('tp-yt-paper-listbox')) === null || _d === void 0 ? void 0 : _d.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
+                ((_d = document.querySelector('tp-yt-paper-listbox')) === null || _d === void 0 ? void 0 : _d.prepend(TooltipItem('change-song-users', 'Song\'s Users Management', () => {
                     !document.getElementById('song-users-modal') &&
                         document.querySelector('body').appendChild(UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
                             queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
