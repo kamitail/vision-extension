@@ -21,11 +21,17 @@ export const getSongLength = (lengthStr: string): number => {
   return +minutes * 60 + +seconds;
 };
 
-export const getPlaylistTotalTime = (songs: Song[]): string => {
-  const songsTotalTime: number = sumBy(songs, 'length');
+export const getTotalSongsTime = (songs: Song[]): { totalHours: string; totalMinutes: string; totalSeconds: string } => {
+  const songsTotalTime: number = songs.length ? sumBy(songs, 'length') : 0;
   const totalHours: string = (songsTotalTime / 3600).toFixed(0);
   const totalMinutes: string = ((songsTotalTime % 3600) / 60).toFixed(0);
   const totalSeconds: string = ((songsTotalTime % 3600) % 60).toFixed(0);
+
+  return { totalHours, totalMinutes, totalSeconds };
+};
+
+export const getPlaylistTotalTime = (songs: Song[]): string => {
+  const { totalHours, totalMinutes, totalSeconds } = getTotalSongsTime(songs);
 
   return `${totalHours} hours, ${totalMinutes} minutes and ${totalSeconds} seconds`;
 };

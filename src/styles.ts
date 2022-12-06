@@ -23,4 +23,20 @@ export const styles = `
   width: 400px;
   height: 400px;
 }
+
+.clickable:hover {
+  cursor: pointer;
+}
+
+.sortable-row-header:after {
+  content: ' ↕';
+}
+
+.sorted-row-header-desc:after {
+  content: ' ↓';
+}
+
+.sorted-row-header-asc:after {
+  content: ' ↑';
+}
 `;

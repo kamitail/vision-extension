@@ -229,7 +229,11 @@ const resetHeardSong = (song: Song) => {
   ws.send(JSON.stringify(localPlaylist));
 };
 
-const hearSong = (song: Song) => {
+const hearSong = async (song: Song) => {
+  await fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+    .then((res) => res.json())
+    .then((data) => (localPlaylist = data));
+
   const localSongs: Song[] = localPlaylist?.songs || [];
 
   localPlaylist = {
@@ -267,7 +271,7 @@ const syncMusic = () => {
   const formattedSongsElements: Song[] = formatSongsElements(songsElements, localSongs);
 
   if (localSongs.length > formattedSongsElements.length) {
-    alert("You didn't collect enough songs");
+    alert('You didn\'t collect enough songs');
     return;
   }
 
@@ -313,7 +317,7 @@ const addSongUsersToTitle = (song: Song) => {
   const localUsers = localPlaylist?.users || [];
   const usersNicknames = song.users.map((user) => localUsers.find((localUser) => localUser.name === user)?.nickname);
   usersData.innerHTML !== `${usersNicknames.join(', ')} •&nbsp;` &&
-    (usersData.innerHTML = `${usersNicknames.join(', ')} •&nbsp;`);
+  (usersData.innerHTML = `${usersNicknames.join(', ')} •&nbsp;`);
 
   deleteTag(document.getElementById('like-button-renderer')!);
   (
@@ -368,11 +372,11 @@ setInterval(() => {
           const currUser: User | undefined = localUsers.find(({ name }) => currUsername === name);
 
           !!currUser &&
-            document.querySelector('body')!.append(
-              EditModal('edit-user-nickname-modal', currUser.nickname, (ev) => {
-                editUserNickname(currUser, (ev.target as HTMLInputElement).value);
-              }),
-            );
+          document.querySelector('body')!.append(
+            EditModal('edit-user-nickname-modal', currUser.nickname, (ev) => {
+              editUserNickname(currUser, (ev.target as HTMLInputElement).value);
+            }),
+          );
           showModal('edit-user-nickname-modal');
         }),
       );
@@ -384,17 +388,17 @@ setInterval(() => {
 
     if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
       !document.getElementById('change-song-users') &&
-        document.querySelector('tp-yt-paper-listbox')?.prepend(
-          TooltipItem('change-song-users', "Song's Users Management", () => {
-            !document.getElementById('song-users-modal') &&
-              document.querySelector('body')!.appendChild(
-                UsersModal('song-users-modal', formatUsers(queueSongInAction!.users || [], localUsers), () => {
-                  queueSongInAction!.users = manageSongUsers('song-users-modal', queueSongInAction!);
-                }),
-              );
-            showModal('song-users-modal');
-          }),
-        );
+      document.querySelector('tp-yt-paper-listbox')?.prepend(
+        TooltipItem('change-song-users', 'Song\'s Users Management', () => {
+          !document.getElementById('song-users-modal') &&
+          document.querySelector('body')!.appendChild(
+            UsersModal('song-users-modal', formatUsers(queueSongInAction!.users || [], localUsers), () => {
+              queueSongInAction!.users = manageSongUsers('song-users-modal', queueSongInAction!);
+            }),
+          );
+          showModal('song-users-modal');
+        }),
+      );
     }
   }
 
@@ -419,8 +423,14 @@ setInterval(() => {
       if (
         (!!currSong?.isHeard && isSongSkipable(document.querySelector('video'), currSong.length)) ||
         (!!currSong && !isSongUserChecked(localUsers, currSong))
-      )
+      ) {
         skipSong();
+
+        fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+          .then((res) => res.json())
+          .then((data) => (localPlaylist = data));
+      }
+
     }
   }
 
@@ -428,7 +438,7 @@ setInterval(() => {
     const selectionBar: HTMLElement = document.getElementById('selectionBar')!;
 
     !document.getElementsByClassName('video-size').length &&
-      document.getElementById('main-panel')!.classList.add('video-size');
+    document.getElementById('main-panel')!.classList.add('video-size');
 
     if (
       !!localUsers.length &&
@@ -496,27 +506,27 @@ setInterval(() => {
 
     if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
       !document.getElementById('reset-is-heard') &&
-        queueSongInAction?.isHeard &&
-        document.querySelector('tp-yt-paper-listbox')?.prepend(
-          TooltipItem('reset-is-heard', 'Reset Hearing', () => {
-            resetHeardSong(queueSongInAction!);
-            queueSongInAction!.isHeard = false;
-          }),
-        );
+      queueSongInAction?.isHeard &&
+      document.querySelector('tp-yt-paper-listbox')?.prepend(
+        TooltipItem('reset-is-heard', 'Reset Hearing', () => {
+          resetHeardSong(queueSongInAction!);
+          queueSongInAction!.isHeard = false;
+        }),
+      );
 
       !document.getElementById('change-song-users') &&
-        document.querySelector('tp-yt-paper-listbox')?.prepend(
-          TooltipItem('change-song-users', "Song's Users Management", () => {
-            !document.getElementById('song-users-modal') &&
-              document.querySelector('body')!.appendChild(
-                UsersModal('song-users-modal', formatUsers(queueSongInAction!.users || [], localUsers), () => {
-                  queueSongInAction!.users = manageSongUsers('song-users-modal', queueSongInAction!);
-                  songElementInAction.innerHTML = (queueSongInAction!.users || []).join(', ');
-                }),
-              );
-            showModal('song-users-modal');
-          }),
-        );
+      document.querySelector('tp-yt-paper-listbox')?.prepend(
+        TooltipItem('change-song-users', 'Song\'s Users Management', () => {
+          !document.getElementById('song-users-modal') &&
+          document.querySelector('body')!.appendChild(
+            UsersModal('song-users-modal', formatUsers(queueSongInAction!.users || [], localUsers), () => {
+              queueSongInAction!.users = manageSongUsers('song-users-modal', queueSongInAction!);
+              songElementInAction.innerHTML = (queueSongInAction!.users || []).join(', ');
+            }),
+          );
+          showModal('song-users-modal');
+        }),
+      );
     }
   }
 }, 100);
@@ -608,74 +618,74 @@ setInterval(() => {
     }
 
     !document.getElementById('get-down-button') &&
-      document.querySelector('body')!.appendChild(
-        FloatButton('get-down-button', () => {
-          (isGoingBottom ? returnToTop : getToBottom)();
-        }),
-      );
+    document.querySelector('body')!.appendChild(
+      FloatButton('get-down-button', () => {
+        (isGoingBottom ? returnToTop : getToBottom)();
+      }),
+    );
 
     !document.getElementById('sync-songs-button') &&
-      document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton(
-          'sync-songs-button',
-          'SYNC SONGS',
-          () => {
-            syncMusic();
-          },
-          syncIcon,
-        ),
-      );
+    document.getElementById('top-level-buttons')!.appendChild(
+      StyledButton(
+        'sync-songs-button',
+        'SYNC SONGS',
+        () => {
+          syncMusic();
+        },
+        syncIcon,
+      ),
+    );
 
     document.querySelectorAll('ytmusic-toggle-button-renderer').forEach((button) => {
       button.innerHTML.toLowerCase().includes('library') &&
-        document.getElementById('top-level-buttons')!.removeChild(button);
+      document.getElementById('top-level-buttons')!.removeChild(button);
     });
 
     !document.getElementById('users-management-button') &&
-      document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton(
-          'users-management-button',
-          'USERS MANAGEMENT',
-          () => {
-            showModal('users-modal');
-          },
-          usersIcon,
-        ),
-      );
+    document.getElementById('top-level-buttons')!.appendChild(
+      StyledButton(
+        'users-management-button',
+        'USERS MANAGEMENT',
+        () => {
+          showModal('users-modal');
+        },
+        usersIcon,
+      ),
+    );
 
     !document.getElementById('statistics-button') &&
-      document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton(
-          'statistics-button',
-          'STATISTICS',
-          () => {
-            document.querySelector('body')!.append(StatisticsModal('statistics-modal', localPlaylist));
-            showModal('statistics-modal');
-          },
-          statisticsIcon,
-        ),
-      );
+    document.getElementById('top-level-buttons')!.appendChild(
+      StyledButton(
+        'statistics-button',
+        'STATISTICS',
+        () => {
+          document.querySelector('body')!.append(StatisticsModal('statistics-modal', localPlaylist));
+          showModal('statistics-modal');
+        },
+        statisticsIcon,
+      ),
+    );
 
     !document.getElementById('reset-all-songs-button') &&
-      document.getElementById('top-level-buttons')!.appendChild(
-        StyledButton(
-          'reset-all-songs-button',
-          'RESET PLAYED SONGS',
-          () => {
-            resetAllHeardSongs();
-          },
-          resetIcon,
-        ),
-      );
+    document.getElementById('top-level-buttons')!.appendChild(
+      StyledButton(
+        'reset-all-songs-button',
+        'RESET PLAYED SONGS',
+        () => {
+          resetAllHeardSongs();
+        },
+        resetIcon,
+      ),
+    );
 
     !!localUsers.length &&
-      !document.getElementById('users-modal') &&
-      document.querySelector('body')!.appendChild(
-        UsersModal('users-modal', localPlaylist?.users || [], () => {
-          saveUsersState('users-modal');
-          areSongPageUsersRelevant = false;
-        }),
-      );
+    !document.getElementById('users-modal') &&
+    document.querySelector('body')!.appendChild(
+      UsersModal('users-modal', localPlaylist?.users || [], () => {
+        saveUsersState('users-modal');
+        areSongPageUsersRelevant = false;
+      }),
+    );
 
     if (
       !arePlaylistPageUsersRelevant &&
@@ -783,13 +793,13 @@ setInterval(() => {
         (song as HTMLElement).style.cssText += '--ytmusic-player-queue-item-thumbnail-size:60px;';
 
         !!sameLocalSong &&
-          song
-            .querySelector('ytmusic-menu-renderer')!
-            .querySelector('tp-yt-paper-icon-button')!
-            .addEventListener('click', () => {
-              queueSongInAction = sameLocalSong;
-              songElementInAction = song.getElementsByClassName('song-info')[0].getElementsByClassName('kuwewe-row')[0];
-            });
+        song
+          .querySelector('ytmusic-menu-renderer')!
+          .querySelector('tp-yt-paper-icon-button')!
+          .addEventListener('click', () => {
+            queueSongInAction = sameLocalSong;
+            songElementInAction = song.getElementsByClassName('song-info')[0].getElementsByClassName('kuwewe-row')[0];
+          });
 
         song.getElementsByClassName('song-info')[0].appendChild(QueueRow());
         song.getElementsByClassName('song-info')[0].getElementsByClassName('kuwewe-row')[0].innerHTML = rowText;

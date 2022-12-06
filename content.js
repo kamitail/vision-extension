@@ -369,12 +369,107 @@ const QueueTab = (id) => {
     return tab;
 };
 
+const last = (array) => array[array.length - 1];
+const sum = (array) => array.reduce((totalSum, currValue) => totalSum + currValue);
+const sumBy = (array, key) => sum(array.map((element) => element[key]));
+const uniq = (items) => [...new Set(items)];
+const mode = (arr) => [...arr].sort((a, b) => arr.filter(v => v === a).length
+    - arr.filter(v => v === b).length).pop();
+
+const isTagExist = (tagContent) => !!tagContent && tagContent.innerHTML !== '';
+const isPlaylistPage = (pageUrl) => pageUrl.includes('playlist?list=');
+const isSongsPage = (pageUrl) => pageUrl.includes('watch?v=');
+const getPlaylistId = (pageUrl) => last(pageUrl.split('='));
+const getSongId = (pageUrl) => pageUrl.split('v=')[1].split('&')[0];
+const deleteTag = (tagContent) => (tagContent.innerHTML = '');
+const getSongLength = (lengthStr) => {
+    const [minutes, seconds] = lengthStr.split(':');
+    return +minutes * 60 + +seconds;
+};
+const getTotalSongsTime = (songs) => {
+    const songsTotalTime = songs.length ? sumBy(songs, 'length') : 0;
+    const totalHours = (songsTotalTime / 3600).toFixed(0);
+    const totalMinutes = ((songsTotalTime % 3600) / 60).toFixed(0);
+    const totalSeconds = ((songsTotalTime % 3600) % 60).toFixed(0);
+    return { totalHours, totalMinutes, totalSeconds };
+};
+const getPlaylistTotalTime = (songs) => {
+    const { totalHours, totalMinutes, totalSeconds } = getTotalSongsTime(songs);
+    return `${totalHours} hours, ${totalMinutes} minutes and ${totalSeconds} seconds`;
+};
+const areSongsEqual = (songA, songB) => songA.id === songB.id;
+const formatSongsElements = (songsElements, localSongs) => {
+    let formattedSongs = [];
+    [...songsElements].forEach((song) => {
+        try {
+            const songData = song.getElementsByClassName('flex-columns')[0];
+            const songTitle = songData
+                .getElementsByClassName('title-column')[0]
+                .querySelectorAll('yt-formatted-string')[0];
+            const songLink = songTitle.querySelector('a').href;
+            const songId = getSongId(songLink);
+            const songDetails = songData
+                .getElementsByClassName('secondary-flex-columns')[0]
+                .querySelectorAll('yt-formatted-string');
+            const songLength = song
+                .getElementsByClassName('fixed-columns')[0]
+                .querySelectorAll('yt-formatted-string')[0].title;
+            const formattedSong = {
+                id: songId,
+                name: songTitle.title,
+                artist: songDetails[0].title,
+                album: songDetails[1].title,
+                users: [songDetails[2].title],
+                isHeard: false,
+                length: getSongLength(songLength),
+            };
+            const isSongAlreadyExist = formattedSongs.some(({ id }) => id === songId);
+            if (isSongAlreadyExist) {
+                formattedSongs = formattedSongs.map((song) => (Object.assign(Object.assign({}, song), { users: song.id === songId
+                        ? song.users.concat(formattedSong.users.filter((user) => !song.users.includes(user)))
+                        : song.users })));
+                return;
+            }
+            const sameLocalSong = localSongs.find((localSong) => areSongsEqual(formattedSong, localSong));
+            if (!!sameLocalSong) {
+                formattedSong.users.push(...sameLocalSong.users.filter((user) => !formattedSong.users.includes(user)));
+                formattedSong.isHeard = sameLocalSong.isHeard;
+            }
+            formattedSongs.push(formattedSong);
+        }
+        catch (error) {
+            return;
+        }
+    });
+    return formattedSongs;
+};
+const getSongsUsers = (songs, localUsers) => {
+    const songsUsers = songs.reduce((users, song) => {
+        const addedUsers = song.users.filter((user) => !users.includes(user));
+        return [...users, ...addedUsers];
+    }, []);
+    return songsUsers.map((user) => {
+        const sameLocalUser = localUsers.find((localUser) => localUser.name === user);
+        return {
+            name: user,
+            isChecked: !sameLocalUser || sameLocalUser.isChecked,
+            nickname: !!sameLocalUser ? sameLocalUser.nickname : user,
+        };
+    });
+};
+const isSongSkipable = (video, videoDuration) => !!video && videoDuration > video.currentTime + 5;
+const isSongHeard = (video, videoDuration) => !!video && videoDuration < video.currentTime + 4;
+const isSongUserChecked = (users, currSong) => users.some((user) => user.isChecked && currSong.users.includes(user.name));
+const formatUsers = (usernames, users) => users.map((user) => (Object.assign(Object.assign({}, user), { isChecked: usernames.includes(user.name) })));
+
 const StatisticsModal = (id, localPlaylist) => {
     const modal = Modal('75vh', '80%', id);
     const modalContent = modal.firstElementChild;
     const statsContent = document.createElement('div');
     const tabsWrapper = document.createElement('div');
-    const tabs = [1, 2].map(() => document.createElement('div'));
+    const tabs = [1, 2, 3].map(() => document.createElement('div'));
+    let currArtistsSort = 0;
+    let currUsersSort = 0;
     let currTabIndex = 0;
     const users = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
     const songs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
@@ -392,24 +487,43 @@ const StatisticsModal = (id, localPlaylist) => {
     tabs[1].classList.add('style-scope');
     tabs[1].classList.add('ytmusic-player-page');
     tabs[1].innerText = 'SONGS';
+    tabs[2].classList.add('tab-header');
+    tabs[2].classList.add('style-scope');
+    tabs[2].classList.add('ytmusic-player-page');
+    tabs[2].innerText = 'ARTISTS';
+    const rerenderTabs = (newTabIndex) => {
+        modalContent.contains(statsContent) && modalContent.removeChild(statsContent);
+        statsContent.innerHTML = '';
+        currTabIndex = newTabIndex;
+        renderTabs();
+    };
     const renderTabs = () => tabs.forEach((tab, index) => {
         tab.style.color = 'white';
         tab.style.padding = '20px 70px';
         tab.style.fontSize = '16px';
         tab.style.cursor = 'pointer';
         tab.style.borderBottom = `${currTabIndex === index ? '1' : '0'}px solid white`;
-        tab.addEventListener('click', () => {
-            modalContent.contains(statsContent) && modalContent.removeChild(statsContent);
-            statsContent.innerHTML = '';
-            currTabIndex = index;
-            renderTabs();
-        });
+        tab.addEventListener('click', () => rerenderTabs(index));
         if (currTabIndex === 0 && index === 0) {
+            const sortByNameAsc = (prevUser, user) => prevUser.name.localeCompare(user.name);
+            const sortByNameDesc = (prevUser, user) => user.name.localeCompare(prevUser.name);
+            const sortByNicknameAsc = (prevUser, user) => prevUser.nickname.localeCompare(user.nickname);
+            const sortByNickNameDesc = (prevUser, user) => user.nickname.localeCompare(prevUser.nickname);
+            const sortBySongQuantityAsc = (prevUser, user) => prevUser.songs.length - user.songs.length;
+            const sortBySongQuantityDesc = (prevUser, user) => user.songs.length - prevUser.songs.length;
+            const sortByHeardSongQuantityAsc = (prevUser, user) => prevUser.songs.filter((song) => song.isHeard).length - user.songs.filter((song) => song.isHeard).length;
+            const sortByHeardSongQuantityDesc = (prevUser, user) => user.songs.filter((song) => song.isHeard).length - prevUser.songs.filter((song) => song.isHeard).length;
+            const sortingFunctions = [sortByNameAsc, sortByNameDesc, sortByNicknameAsc, sortByNickNameDesc, sortBySongQuantityAsc, sortBySongQuantityDesc, sortByHeardSongQuantityAsc, sortByHeardSongQuantityDesc];
+            const usersWithSongs = users.map((user) => {
+                const userSongs = songs.filter((song) => song.users.includes(user.name));
+                return Object.assign(Object.assign({}, user), { songs: userSongs });
+            }).sort(sortingFunctions[currUsersSort]);
             const row = document.createElement('div');
             const username = document.createElement('div');
             const nickname = document.createElement('div');
             const songsQuantity = document.createElement('div');
             const heardSongsQuantity = document.createElement('div');
+            const favoriteArtist = document.createElement('div');
             const breakLine = document.createElement('hr');
             row.style.width = '100%';
             row.style.display = 'flex';
@@ -421,24 +535,78 @@ const StatisticsModal = (id, localPlaylist) => {
             username.style.textAlign = 'left';
             username.style.fontWeight = '500';
             username.innerText = 'Username';
+            username.classList.add('clickable');
+            username.classList.add(currUsersSort === 0 ? 'sorted-row-header-asc' : currUsersSort === 1 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            username.addEventListener('click', () => {
+                if (currUsersSort === 0) {
+                    currUsersSort = 1;
+                    username.classList.add('sorted-row-header-asc');
+                }
+                else {
+                    currUsersSort = 0;
+                }
+                rerenderTabs(index);
+            });
             nickname.style.width = '20%';
             nickname.style.color = 'white';
             nickname.style.fontSize = '18px';
             nickname.style.textAlign = 'left';
             nickname.style.fontWeight = '500';
             nickname.innerText = 'Nickname';
+            nickname.classList.add('clickable');
+            nickname.classList.add(currUsersSort === 2 ? 'sorted-row-header-asc' : currUsersSort === 3 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            nickname.addEventListener('click', () => {
+                if (currUsersSort === 2) {
+                    currUsersSort = 3;
+                    nickname.classList.add('sorted-row-header-asc');
+                }
+                else {
+                    currUsersSort = 2;
+                }
+                rerenderTabs(index);
+            });
             songsQuantity.style.width = '20%';
             songsQuantity.style.color = 'white';
             songsQuantity.style.fontSize = '18px';
             songsQuantity.style.textAlign = 'left';
             songsQuantity.style.fontWeight = '500';
-            songsQuantity.innerText = 'Songs Quantity';
+            songsQuantity.innerText = 'Songs Quantity (Len)';
+            songsQuantity.classList.add('clickable');
+            songsQuantity.classList.add(currUsersSort === 4 ? 'sorted-row-header-asc' : currUsersSort === 5 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            songsQuantity.addEventListener('click', () => {
+                if (currUsersSort === 5) {
+                    currUsersSort = 4;
+                    songsQuantity.classList.add('sorted-row-header-asc');
+                }
+                else {
+                    currUsersSort = 5;
+                }
+                rerenderTabs(index);
+            });
             heardSongsQuantity.style.width = '20%';
             heardSongsQuantity.style.color = 'white';
             heardSongsQuantity.style.fontSize = '18px';
             heardSongsQuantity.style.textAlign = 'left';
             heardSongsQuantity.style.fontWeight = '500';
-            heardSongsQuantity.innerText = 'Played Songs Quantity';
+            heardSongsQuantity.innerText = 'Played Songs Quantity (Len)';
+            heardSongsQuantity.classList.add('clickable');
+            heardSongsQuantity.classList.add(currUsersSort === 6 ? 'sorted-row-header-asc' : currUsersSort === 7 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            heardSongsQuantity.addEventListener('click', () => {
+                if (currUsersSort === 7) {
+                    currUsersSort = 6;
+                    heardSongsQuantity.classList.add('sorted-row-header-asc');
+                }
+                else {
+                    currUsersSort = 7;
+                }
+                rerenderTabs(index);
+            });
+            favoriteArtist.style.width = '20%';
+            favoriteArtist.style.color = 'white';
+            favoriteArtist.style.fontSize = '18px';
+            favoriteArtist.style.textAlign = 'left';
+            favoriteArtist.style.fontWeight = '500';
+            favoriteArtist.innerText = 'Favorite Artist (Quantity/Played)';
             breakLine.style.backgroundColor = '#3c3c3c';
             breakLine.style.height = '1px';
             breakLine.style.marginBottom = '5px';
@@ -446,18 +614,27 @@ const StatisticsModal = (id, localPlaylist) => {
             row.append(nickname);
             row.append(songsQuantity);
             row.append(heardSongsQuantity);
+            row.append(favoriteArtist);
             statsContent.append(row);
             statsContent.append(breakLine);
-            users.forEach((user) => {
+            usersWithSongs.forEach((user) => {
                 const row = document.createElement('div');
                 const username = document.createElement('div');
                 const nickname = document.createElement('div');
                 const songsQuantityElem = document.createElement('div');
                 const heardSongsQuantityElem = document.createElement('div');
+                const favoriteArtistElem = document.createElement('div');
                 const breakLine = document.createElement('hr');
-                const userSongs = songs.filter((song) => song.users.includes(user.name));
+                const userSongs = user.songs;
                 const songsQuantity = userSongs.length;
+                const heardSongs = userSongs.filter((song) => song.isHeard);
                 const heardSongsQuantity = userSongs.filter((song) => song.isHeard).length;
+                const { totalHours: totalSongsHours, totalMinutes: totalSongsMinutes, totalSeconds: totalSongsSeconds, } = getTotalSongsTime(userSongs);
+                const { totalHours: totalHeardSongsHours, totalMinutes: totalHeardSongsMinutes, totalSeconds: totalHeardSongsSeconds, } = getTotalSongsTime(heardSongs);
+                const userArtists = userSongs.map((song) => song.artist);
+                const favoriteArtist = mode(userArtists);
+                const favoriteArtistSongQuantity = userArtists.filter(artist => artist === favoriteArtist).length;
+                const favoriteArtistSongPlayedQuantity = heardSongs.filter(song => song.artist === favoriteArtist).length;
                 row.style.width = '100%';
                 row.style.display = 'flex';
                 row.style.height = '7vh';
@@ -476,17 +653,147 @@ const StatisticsModal = (id, localPlaylist) => {
                 songsQuantityElem.style.color = 'white';
                 songsQuantityElem.style.fontSize = '18px';
                 songsQuantityElem.style.textAlign = 'left';
-                songsQuantityElem.innerText = `${songsQuantity} songs`;
+                songsQuantityElem.innerText = `${songsQuantity} songs (${totalSongsHours}h, ${totalSongsMinutes}m, ${totalSongsSeconds}s)`;
                 heardSongsQuantityElem.style.width = '20%';
                 heardSongsQuantityElem.style.color = 'white';
                 heardSongsQuantityElem.style.fontSize = '18px';
                 heardSongsQuantityElem.style.textAlign = 'left';
-                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs`;
+                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs (${totalHeardSongsHours}h, ${totalHeardSongsMinutes}m, ${totalHeardSongsSeconds}s)`;
+                favoriteArtistElem.style.width = '20%';
+                favoriteArtistElem.style.color = 'white';
+                favoriteArtistElem.style.fontSize = '18px';
+                favoriteArtistElem.style.textAlign = 'left';
+                favoriteArtistElem.innerText = `${favoriteArtist} (${favoriteArtistSongQuantity}/${favoriteArtistSongPlayedQuantity})`;
                 breakLine.style.backgroundColor = '#3c3c3c';
                 breakLine.style.height = '1px';
                 breakLine.style.marginBottom = '10px';
                 row.append(username);
                 row.append(nickname);
+                row.append(songsQuantityElem);
+                row.append(heardSongsQuantityElem);
+                row.append(favoriteArtistElem);
+                statsContent.append(row);
+                statsContent.append(breakLine);
+                modalContent.append(statsContent);
+            });
+        }
+        else if (currTabIndex === 2 && index === 2) {
+            const sortByNameAsc = (prevArtist, artist) => prevArtist.name.localeCompare(artist.name);
+            const sortByNameDesc = (prevArtist, artist) => artist.name.localeCompare(prevArtist.name);
+            const sortBySongQuantityAsc = (prevArtist, artist) => prevArtist.songs.length - artist.songs.length;
+            const sortBySongQuantityDesc = (prevArtist, artist) => artist.songs.length - prevArtist.songs.length;
+            const sortByHeardSongQuantityAsc = (prevArtist, artist) => prevArtist.songs.filter((song) => song.isHeard).length - artist.songs.filter((song) => song.isHeard).length;
+            const sortByHeardSongQuantityDesc = (prevArtist, artist) => artist.songs.filter((song) => song.isHeard).length - prevArtist.songs.filter((song) => song.isHeard).length;
+            const sortingFunctions = [sortByNameAsc, sortByNameDesc, sortBySongQuantityAsc, sortBySongQuantityDesc, sortByHeardSongQuantityAsc, sortByHeardSongQuantityDesc];
+            const getArtist = (song) => song.artist.split(/, | & /);
+            const artistsNames = uniq(songs.map(getArtist).flat());
+            const artists = artistsNames.map(artistName => {
+                const artistSongs = songs.filter((song) => song.artist.split('/, | & /').includes(artistName));
+                return { name: artistName, songs: artistSongs };
+            }).sort(sortingFunctions[currArtistsSort]);
+            const row = document.createElement('div');
+            const artistName = document.createElement('div');
+            const songsQuantity = document.createElement('div');
+            const heardSongsQuantity = document.createElement('div');
+            const breakLine = document.createElement('hr');
+            row.style.width = '100%';
+            row.style.display = 'flex';
+            row.style.height = '7vh';
+            row.style.marginTop = '2vh';
+            artistName.style.width = '20%';
+            artistName.style.color = 'white';
+            artistName.style.fontSize = '18px';
+            artistName.style.textAlign = 'left';
+            artistName.style.fontWeight = '500';
+            artistName.classList.add('clickable');
+            artistName.classList.add(currArtistsSort === 0 ? 'sorted-row-header-asc' : currArtistsSort === 1 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            artistName.innerText = 'Artist';
+            artistName.addEventListener('click', () => {
+                if (currArtistsSort === 0) {
+                    currArtistsSort = 1;
+                    artistName.classList.add('sorted-row-header-asc');
+                }
+                else {
+                    currArtistsSort = 0;
+                }
+                rerenderTabs(index);
+            });
+            songsQuantity.style.width = '20%';
+            songsQuantity.style.color = 'white';
+            songsQuantity.style.fontSize = '18px';
+            songsQuantity.style.textAlign = 'left';
+            songsQuantity.style.fontWeight = '500';
+            songsQuantity.innerText = 'Songs Quantity (Len)';
+            songsQuantity.classList.add('clickable');
+            songsQuantity.classList.add(currArtistsSort === 2 ? 'sorted-row-header-asc' : currArtistsSort === 3 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            songsQuantity.addEventListener('click', () => {
+                if (currArtistsSort === 3) {
+                    currArtistsSort = 2;
+                }
+                else {
+                    currArtistsSort = 3;
+                }
+                rerenderTabs(index);
+            });
+            heardSongsQuantity.style.width = '20%';
+            heardSongsQuantity.style.color = 'white';
+            heardSongsQuantity.style.fontSize = '18px';
+            heardSongsQuantity.style.textAlign = 'left';
+            heardSongsQuantity.style.fontWeight = '500';
+            heardSongsQuantity.innerText = 'Played Songs Quantity (Len)';
+            heardSongsQuantity.classList.add('clickable');
+            heardSongsQuantity.classList.add(currArtistsSort === 4 ? 'sorted-row-header-asc' : currArtistsSort === 5 ? 'sorted-row-header-desc' : 'sortable-row-header');
+            heardSongsQuantity.addEventListener('click', () => {
+                if (currArtistsSort === 5) {
+                    currArtistsSort = 4;
+                }
+                else {
+                    currArtistsSort = 5;
+                }
+                rerenderTabs(index);
+            });
+            breakLine.style.backgroundColor = '#3c3c3c';
+            breakLine.style.height = '1px';
+            breakLine.style.marginBottom = '5px';
+            row.append(artistName);
+            row.append(songsQuantity);
+            row.append(heardSongsQuantity);
+            statsContent.append(row);
+            statsContent.append(breakLine);
+            artists.forEach((artist) => {
+                const row = document.createElement('div');
+                const artistName = document.createElement('div');
+                const songsQuantityElem = document.createElement('div');
+                const heardSongsQuantityElem = document.createElement('div');
+                const breakLine = document.createElement('hr');
+                const heardSongs = artist.songs.filter((song) => song.isHeard);
+                const songsQuantity = artist.songs.length;
+                const heardSongsQuantity = heardSongs.length;
+                const { totalHours: totalSongsHours, totalMinutes: totalSongsMinutes, totalSeconds: totalSongsSeconds, } = getTotalSongsTime(artist.songs);
+                const { totalHours: totalHeardSongsHours, totalMinutes: totalHeardSongsMinutes, totalSeconds: totalHeardSongsSeconds, } = getTotalSongsTime(heardSongs);
+                row.style.width = '100%';
+                row.style.display = 'flex';
+                row.style.height = '7vh';
+                row.style.alignItems = 'center';
+                artistName.style.width = '20%';
+                artistName.style.color = 'white';
+                artistName.style.fontSize = '18px';
+                artistName.style.textAlign = 'left';
+                artistName.innerText = artist.name;
+                songsQuantityElem.style.width = '20%';
+                songsQuantityElem.style.color = 'white';
+                songsQuantityElem.style.fontSize = '18px';
+                songsQuantityElem.style.textAlign = 'left';
+                songsQuantityElem.innerText = `${songsQuantity} songs (${totalSongsHours}h, ${totalSongsMinutes}m, ${totalSongsSeconds}s)`;
+                heardSongsQuantityElem.style.width = '20%';
+                heardSongsQuantityElem.style.color = 'white';
+                heardSongsQuantityElem.style.fontSize = '18px';
+                heardSongsQuantityElem.style.textAlign = 'left';
+                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs (${totalHeardSongsHours}h, ${totalHeardSongsMinutes}m, ${totalHeardSongsSeconds}s)`;
+                breakLine.style.backgroundColor = '#3c3c3c';
+                breakLine.style.height = '1px';
+                breakLine.style.marginBottom = '10px';
+                row.append(artistName);
                 row.append(songsQuantityElem);
                 row.append(heardSongsQuantityElem);
                 statsContent.append(row);
@@ -708,6 +1015,22 @@ const styles = `
   width: 400px;
   height: 400px;
 }
+
+.clickable:hover {
+  cursor: pointer;
+}
+
+.sortable-row-header:after {
+  content: ' ↕';
+}
+
+.sorted-row-header-desc:after {
+  content: ' ↓';
+}
+
+.sorted-row-header-asc:after {
+  content: ' ↑';
+}
 `;
 
 const FloatButton = (id, clickAction) => {
@@ -762,92 +1085,6 @@ const StyledButton = (id, buttonText, clickAction, icon) => {
     buttonIcon.style.filter = 'invert(100%) sepia(100%) saturate(100%)';
     return button;
 };
-
-const last = (array) => array[array.length - 1];
-const sum = (array) => array.reduce((totalSum, currValue) => totalSum + currValue);
-const sumBy = (array, key) => sum(array.map((element) => element[key]));
-
-const isTagExist = (tagContent) => !!tagContent && tagContent.innerHTML !== '';
-const isPlaylistPage = (pageUrl) => pageUrl.includes('playlist?list=');
-const isSongsPage = (pageUrl) => pageUrl.includes('watch?v=');
-const getPlaylistId = (pageUrl) => last(pageUrl.split('='));
-const getSongId = (pageUrl) => pageUrl.split('v=')[1].split('&')[0];
-const deleteTag = (tagContent) => (tagContent.innerHTML = '');
-const getSongLength = (lengthStr) => {
-    const [minutes, seconds] = lengthStr.split(':');
-    return +minutes * 60 + +seconds;
-};
-const getPlaylistTotalTime = (songs) => {
-    const songsTotalTime = sumBy(songs, 'length');
-    const totalHours = (songsTotalTime / 3600).toFixed(0);
-    const totalMinutes = ((songsTotalTime % 3600) / 60).toFixed(0);
-    const totalSeconds = ((songsTotalTime % 3600) % 60).toFixed(0);
-    return `${totalHours} hours, ${totalMinutes} minutes and ${totalSeconds} seconds`;
-};
-const areSongsEqual = (songA, songB) => songA.id === songB.id;
-const formatSongsElements = (songsElements, localSongs) => {
-    let formattedSongs = [];
-    [...songsElements].forEach((song) => {
-        try {
-            const songData = song.getElementsByClassName('flex-columns')[0];
-            const songTitle = songData
-                .getElementsByClassName('title-column')[0]
-                .querySelectorAll('yt-formatted-string')[0];
-            const songLink = songTitle.querySelector('a').href;
-            const songId = getSongId(songLink);
-            const songDetails = songData
-                .getElementsByClassName('secondary-flex-columns')[0]
-                .querySelectorAll('yt-formatted-string');
-            const songLength = song
-                .getElementsByClassName('fixed-columns')[0]
-                .querySelectorAll('yt-formatted-string')[0].title;
-            const formattedSong = {
-                id: songId,
-                name: songTitle.title,
-                artist: songDetails[0].title,
-                album: songDetails[1].title,
-                users: [songDetails[2].title],
-                isHeard: false,
-                length: getSongLength(songLength),
-            };
-            const isSongAlreadyExist = formattedSongs.some(({ id }) => id === songId);
-            if (isSongAlreadyExist) {
-                formattedSongs = formattedSongs.map((song) => (Object.assign(Object.assign({}, song), { users: song.id === songId
-                        ? song.users.concat(formattedSong.users.filter((user) => !song.users.includes(user)))
-                        : song.users })));
-                return;
-            }
-            const sameLocalSong = localSongs.find((localSong) => areSongsEqual(formattedSong, localSong));
-            if (!!sameLocalSong) {
-                formattedSong.users.push(...sameLocalSong.users.filter((user) => !formattedSong.users.includes(user)));
-                formattedSong.isHeard = sameLocalSong.isHeard;
-            }
-            formattedSongs.push(formattedSong);
-        }
-        catch (error) {
-            return;
-        }
-    });
-    return formattedSongs;
-};
-const getSongsUsers = (songs, localUsers) => {
-    const songsUsers = songs.reduce((users, song) => {
-        const addedUsers = song.users.filter((user) => !users.includes(user));
-        return [...users, ...addedUsers];
-    }, []);
-    return songsUsers.map((user) => {
-        const sameLocalUser = localUsers.find((localUser) => localUser.name === user);
-        return {
-            name: user,
-            isChecked: !sameLocalUser || sameLocalUser.isChecked,
-            nickname: !!sameLocalUser ? sameLocalUser.nickname : user,
-        };
-    });
-};
-const isSongSkipable = (video, videoDuration) => !!video && videoDuration > video.currentTime + 5;
-const isSongHeard = (video, videoDuration) => !!video && videoDuration < video.currentTime + 4;
-const isSongUserChecked = (users, currSong) => users.some((user) => user.isChecked && currSong.users.includes(user.name));
-const formatUsers = (usernames, users) => users.map((user) => (Object.assign(Object.assign({}, user), { isChecked: usernames.includes(user.name) })));
 
 const rerenderPlaylistImage = () => {
     var _a;
@@ -1013,7 +1250,10 @@ const resetHeardSong = (song) => {
         .then(console.log);
     ws.send(JSON.stringify(localPlaylist));
 };
-const hearSong = (song) => {
+const hearSong = async (song) => {
+    await fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+        .then((res) => res.json())
+        .then((data) => (localPlaylist = data));
     const localSongs = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.songs) || [];
     localPlaylist = Object.assign(Object.assign({}, localPlaylist), { songs: localSongs.map((localSong) => (Object.assign(Object.assign({}, localSong), { isHeard: areSongsEqual(localSong, song) || localSong.isHeard }))) });
     fetch(`${PLAYLIST_API_ENDPOINT}/api/sync`, {
@@ -1039,7 +1279,7 @@ const syncMusic = () => {
     const localUsers = (localPlaylist === null || localPlaylist === void 0 ? void 0 : localPlaylist.users) || [];
     const formattedSongsElements = formatSongsElements(songsElements, localSongs);
     if (localSongs.length > formattedSongsElements.length) {
-        alert("You didn't collect enough songs");
+        alert('You didn\'t collect enough songs');
         return;
     }
     const songsUsers = getSongsUsers(formattedSongsElements, localUsers);
@@ -1127,7 +1367,7 @@ setInterval(() => {
         isTagExist(playlistBottomShelf) && deleteTag(playlistBottomShelf);
         if (!!document.querySelector('tp-yt-paper-listbox') && !!queueSongInAction) {
             !document.getElementById('change-song-users') &&
-                ((_a = document.querySelector('tp-yt-paper-listbox')) === null || _a === void 0 ? void 0 : _a.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
+                ((_a = document.querySelector('tp-yt-paper-listbox')) === null || _a === void 0 ? void 0 : _a.prepend(TooltipItem('change-song-users', 'Song\'s Users Management', () => {
                     !document.getElementById('song-users-modal') &&
                         document.querySelector('body').appendChild(UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
                             queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
@@ -1152,8 +1392,12 @@ setInterval(() => {
             const shownSongDetails = getShownSongDetails();
             const currSong = localSongs.find((localSong) => areSongsEqual(localSong, shownSongDetails));
             if ((!!(currSong === null || currSong === void 0 ? void 0 : currSong.isHeard) && isSongSkipable(document.querySelector('video'), currSong.length)) ||
-                (!!currSong && !isSongUserChecked(localUsers, currSong)))
+                (!!currSong && !isSongUserChecked(localUsers, currSong))) {
                 skipSong();
+                fetch(`${PLAYLIST_API_ENDPOINT}/api/playlists/${playlistId}`)
+                    .then((res) => res.json())
+                    .then((data) => (localPlaylist = data));
+            }
         }
     }
     if (isSongsPage(pageUrl)) {
@@ -1214,7 +1458,7 @@ setInterval(() => {
                     queueSongInAction.isHeard = false;
                 })));
             !document.getElementById('change-song-users') &&
-                ((_d = document.querySelector('tp-yt-paper-listbox')) === null || _d === void 0 ? void 0 : _d.prepend(TooltipItem('change-song-users', "Song's Users Management", () => {
+                ((_d = document.querySelector('tp-yt-paper-listbox')) === null || _d === void 0 ? void 0 : _d.prepend(TooltipItem('change-song-users', 'Song\'s Users Management', () => {
                     !document.getElementById('song-users-modal') &&
                         document.querySelector('body').appendChild(UsersModal('song-users-modal', formatUsers(queueSongInAction.users || [], localUsers), () => {
                             queueSongInAction.users = manageSongUsers('song-users-modal', queueSongInAction);
