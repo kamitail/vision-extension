@@ -376,6 +376,92 @@ const uniq = (items) => [...new Set(items)];
 const mode = (arr) => [...arr].sort((a, b) => arr.filter(v => v === a).length
     - arr.filter(v => v === b).length).pop();
 
+const isTagExist = (tagContent) => !!tagContent && tagContent.innerHTML !== '';
+const isPlaylistPage = (pageUrl) => pageUrl.includes('playlist?list=');
+const isSongsPage = (pageUrl) => pageUrl.includes('watch?v=');
+const getPlaylistId = (pageUrl) => last(pageUrl.split('='));
+const getSongId = (pageUrl) => pageUrl.split('v=')[1].split('&')[0];
+const deleteTag = (tagContent) => (tagContent.innerHTML = '');
+const getSongLength = (lengthStr) => {
+    const [minutes, seconds] = lengthStr.split(':');
+    return +minutes * 60 + +seconds;
+};
+const getTotalSongsTime = (songs) => {
+    const songsTotalTime = songs.length ? sumBy(songs, 'length') : 0;
+    const totalHours = (songsTotalTime / 3600).toFixed(0);
+    const totalMinutes = ((songsTotalTime % 3600) / 60).toFixed(0);
+    const totalSeconds = ((songsTotalTime % 3600) % 60).toFixed(0);
+    return { totalHours, totalMinutes, totalSeconds };
+};
+const getPlaylistTotalTime = (songs) => {
+    const { totalHours, totalMinutes, totalSeconds } = getTotalSongsTime(songs);
+    return `${totalHours} hours, ${totalMinutes} minutes and ${totalSeconds} seconds`;
+};
+const areSongsEqual = (songA, songB) => songA.id === songB.id;
+const formatSongsElements = (songsElements, localSongs) => {
+    let formattedSongs = [];
+    [...songsElements].forEach((song) => {
+        try {
+            const songData = song.getElementsByClassName('flex-columns')[0];
+            const songTitle = songData
+                .getElementsByClassName('title-column')[0]
+                .querySelectorAll('yt-formatted-string')[0];
+            const songLink = songTitle.querySelector('a').href;
+            const songId = getSongId(songLink);
+            const songDetails = songData
+                .getElementsByClassName('secondary-flex-columns')[0]
+                .querySelectorAll('yt-formatted-string');
+            const songLength = song
+                .getElementsByClassName('fixed-columns')[0]
+                .querySelectorAll('yt-formatted-string')[0].title;
+            const formattedSong = {
+                id: songId,
+                name: songTitle.title,
+                artist: songDetails[0].title,
+                album: songDetails[1].title,
+                users: [songDetails[2].title],
+                isHeard: false,
+                length: getSongLength(songLength),
+            };
+            const isSongAlreadyExist = formattedSongs.some(({ id }) => id === songId);
+            if (isSongAlreadyExist) {
+                formattedSongs = formattedSongs.map((song) => (Object.assign(Object.assign({}, song), { users: song.id === songId
+                        ? song.users.concat(formattedSong.users.filter((user) => !song.users.includes(user)))
+                        : song.users })));
+                return;
+            }
+            const sameLocalSong = localSongs.find((localSong) => areSongsEqual(formattedSong, localSong));
+            if (!!sameLocalSong) {
+                formattedSong.users.push(...sameLocalSong.users.filter((user) => !formattedSong.users.includes(user)));
+                formattedSong.isHeard = sameLocalSong.isHeard;
+            }
+            formattedSongs.push(formattedSong);
+        }
+        catch (error) {
+            return;
+        }
+    });
+    return formattedSongs;
+};
+const getSongsUsers = (songs, localUsers) => {
+    const songsUsers = songs.reduce((users, song) => {
+        const addedUsers = song.users.filter((user) => !users.includes(user));
+        return [...users, ...addedUsers];
+    }, []);
+    return songsUsers.map((user) => {
+        const sameLocalUser = localUsers.find((localUser) => localUser.name === user);
+        return {
+            name: user,
+            isChecked: !sameLocalUser || sameLocalUser.isChecked,
+            nickname: !!sameLocalUser ? sameLocalUser.nickname : user,
+        };
+    });
+};
+const isSongSkipable = (video, videoDuration) => !!video && videoDuration > video.currentTime + 5;
+const isSongHeard = (video, videoDuration) => !!video && videoDuration < video.currentTime + 4;
+const isSongUserChecked = (users, currSong) => users.some((user) => user.isChecked && currSong.users.includes(user.name));
+const formatUsers = (usernames, users) => users.map((user) => (Object.assign(Object.assign({}, user), { isChecked: usernames.includes(user.name) })));
+
 const StatisticsModal = (id, localPlaylist) => {
     const modal = Modal('75vh', '80%', id);
     const modalContent = modal.firstElementChild;
@@ -484,7 +570,7 @@ const StatisticsModal = (id, localPlaylist) => {
             songsQuantity.style.fontSize = '18px';
             songsQuantity.style.textAlign = 'left';
             songsQuantity.style.fontWeight = '500';
-            songsQuantity.innerText = 'Songs Quantity';
+            songsQuantity.innerText = 'Songs Quantity (Len)';
             songsQuantity.classList.add('clickable');
             songsQuantity.classList.add(currUsersSort === 4 ? 'sorted-row-header-asc' : currUsersSort === 5 ? 'sorted-row-header-desc' : 'sortable-row-header');
             songsQuantity.addEventListener('click', () => {
@@ -502,7 +588,7 @@ const StatisticsModal = (id, localPlaylist) => {
             heardSongsQuantity.style.fontSize = '18px';
             heardSongsQuantity.style.textAlign = 'left';
             heardSongsQuantity.style.fontWeight = '500';
-            heardSongsQuantity.innerText = 'Played Songs Quantity';
+            heardSongsQuantity.innerText = 'Played Songs Quantity (Len)';
             heardSongsQuantity.classList.add('clickable');
             heardSongsQuantity.classList.add(currUsersSort === 6 ? 'sorted-row-header-asc' : currUsersSort === 7 ? 'sorted-row-header-desc' : 'sortable-row-header');
             heardSongsQuantity.addEventListener('click', () => {
@@ -543,6 +629,8 @@ const StatisticsModal = (id, localPlaylist) => {
                 const songsQuantity = userSongs.length;
                 const heardSongs = userSongs.filter((song) => song.isHeard);
                 const heardSongsQuantity = userSongs.filter((song) => song.isHeard).length;
+                const { totalHours: totalSongsHours, totalMinutes: totalSongsMinutes, totalSeconds: totalSongsSeconds, } = getTotalSongsTime(userSongs);
+                const { totalHours: totalHeardSongsHours, totalMinutes: totalHeardSongsMinutes, totalSeconds: totalHeardSongsSeconds, } = getTotalSongsTime(heardSongs);
                 const userArtists = userSongs.map((song) => song.artist);
                 const favoriteArtist = mode(userArtists);
                 const favoriteArtistSongQuantity = userArtists.filter(artist => artist === favoriteArtist).length;
@@ -565,12 +653,12 @@ const StatisticsModal = (id, localPlaylist) => {
                 songsQuantityElem.style.color = 'white';
                 songsQuantityElem.style.fontSize = '18px';
                 songsQuantityElem.style.textAlign = 'left';
-                songsQuantityElem.innerText = `${songsQuantity} songs`;
+                songsQuantityElem.innerText = `${songsQuantity} songs (${totalSongsHours}h, ${totalSongsMinutes}m, ${totalSongsSeconds}s)`;
                 heardSongsQuantityElem.style.width = '20%';
                 heardSongsQuantityElem.style.color = 'white';
                 heardSongsQuantityElem.style.fontSize = '18px';
                 heardSongsQuantityElem.style.textAlign = 'left';
-                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs`;
+                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs (${totalHeardSongsHours}h, ${totalHeardSongsMinutes}m, ${totalHeardSongsSeconds}s)`;
                 favoriteArtistElem.style.width = '20%';
                 favoriteArtistElem.style.color = 'white';
                 favoriteArtistElem.style.fontSize = '18px';
@@ -635,7 +723,7 @@ const StatisticsModal = (id, localPlaylist) => {
             songsQuantity.style.fontSize = '18px';
             songsQuantity.style.textAlign = 'left';
             songsQuantity.style.fontWeight = '500';
-            songsQuantity.innerText = 'Songs Quantity';
+            songsQuantity.innerText = 'Songs Quantity (Len)';
             songsQuantity.classList.add('clickable');
             songsQuantity.classList.add(currArtistsSort === 2 ? 'sorted-row-header-asc' : currArtistsSort === 3 ? 'sorted-row-header-desc' : 'sortable-row-header');
             songsQuantity.addEventListener('click', () => {
@@ -652,7 +740,7 @@ const StatisticsModal = (id, localPlaylist) => {
             heardSongsQuantity.style.fontSize = '18px';
             heardSongsQuantity.style.textAlign = 'left';
             heardSongsQuantity.style.fontWeight = '500';
-            heardSongsQuantity.innerText = 'Played Songs Quantity';
+            heardSongsQuantity.innerText = 'Played Songs Quantity (Len)';
             heardSongsQuantity.classList.add('clickable');
             heardSongsQuantity.classList.add(currArtistsSort === 4 ? 'sorted-row-header-asc' : currArtistsSort === 5 ? 'sorted-row-header-desc' : 'sortable-row-header');
             heardSongsQuantity.addEventListener('click', () => {
@@ -678,8 +766,11 @@ const StatisticsModal = (id, localPlaylist) => {
                 const songsQuantityElem = document.createElement('div');
                 const heardSongsQuantityElem = document.createElement('div');
                 const breakLine = document.createElement('hr');
+                const heardSongs = artist.songs.filter((song) => song.isHeard);
                 const songsQuantity = artist.songs.length;
-                const heardSongsQuantity = artist.songs.filter((song) => song.isHeard).length;
+                const heardSongsQuantity = heardSongs.length;
+                const { totalHours: totalSongsHours, totalMinutes: totalSongsMinutes, totalSeconds: totalSongsSeconds, } = getTotalSongsTime(artist.songs);
+                const { totalHours: totalHeardSongsHours, totalMinutes: totalHeardSongsMinutes, totalSeconds: totalHeardSongsSeconds, } = getTotalSongsTime(heardSongs);
                 row.style.width = '100%';
                 row.style.display = 'flex';
                 row.style.height = '7vh';
@@ -693,12 +784,12 @@ const StatisticsModal = (id, localPlaylist) => {
                 songsQuantityElem.style.color = 'white';
                 songsQuantityElem.style.fontSize = '18px';
                 songsQuantityElem.style.textAlign = 'left';
-                songsQuantityElem.innerText = `${songsQuantity} songs`;
+                songsQuantityElem.innerText = `${songsQuantity} songs (${totalSongsHours}h, ${totalSongsMinutes}m, ${totalSongsSeconds}s)`;
                 heardSongsQuantityElem.style.width = '20%';
                 heardSongsQuantityElem.style.color = 'white';
                 heardSongsQuantityElem.style.fontSize = '18px';
                 heardSongsQuantityElem.style.textAlign = 'left';
-                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs`;
+                heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs (${totalHeardSongsHours}h, ${totalHeardSongsMinutes}m, ${totalHeardSongsSeconds}s)`;
                 breakLine.style.backgroundColor = '#3c3c3c';
                 breakLine.style.height = '1px';
                 breakLine.style.marginBottom = '10px';
@@ -994,88 +1085,6 @@ const StyledButton = (id, buttonText, clickAction, icon) => {
     buttonIcon.style.filter = 'invert(100%) sepia(100%) saturate(100%)';
     return button;
 };
-
-const isTagExist = (tagContent) => !!tagContent && tagContent.innerHTML !== '';
-const isPlaylistPage = (pageUrl) => pageUrl.includes('playlist?list=');
-const isSongsPage = (pageUrl) => pageUrl.includes('watch?v=');
-const getPlaylistId = (pageUrl) => last(pageUrl.split('='));
-const getSongId = (pageUrl) => pageUrl.split('v=')[1].split('&')[0];
-const deleteTag = (tagContent) => (tagContent.innerHTML = '');
-const getSongLength = (lengthStr) => {
-    const [minutes, seconds] = lengthStr.split(':');
-    return +minutes * 60 + +seconds;
-};
-const getPlaylistTotalTime = (songs) => {
-    const songsTotalTime = sumBy(songs, 'length');
-    const totalHours = (songsTotalTime / 3600).toFixed(0);
-    const totalMinutes = ((songsTotalTime % 3600) / 60).toFixed(0);
-    const totalSeconds = ((songsTotalTime % 3600) % 60).toFixed(0);
-    return `${totalHours} hours, ${totalMinutes} minutes and ${totalSeconds} seconds`;
-};
-const areSongsEqual = (songA, songB) => songA.id === songB.id;
-const formatSongsElements = (songsElements, localSongs) => {
-    let formattedSongs = [];
-    [...songsElements].forEach((song) => {
-        try {
-            const songData = song.getElementsByClassName('flex-columns')[0];
-            const songTitle = songData
-                .getElementsByClassName('title-column')[0]
-                .querySelectorAll('yt-formatted-string')[0];
-            const songLink = songTitle.querySelector('a').href;
-            const songId = getSongId(songLink);
-            const songDetails = songData
-                .getElementsByClassName('secondary-flex-columns')[0]
-                .querySelectorAll('yt-formatted-string');
-            const songLength = song
-                .getElementsByClassName('fixed-columns')[0]
-                .querySelectorAll('yt-formatted-string')[0].title;
-            const formattedSong = {
-                id: songId,
-                name: songTitle.title,
-                artist: songDetails[0].title,
-                album: songDetails[1].title,
-                users: [songDetails[2].title],
-                isHeard: false,
-                length: getSongLength(songLength),
-            };
-            const isSongAlreadyExist = formattedSongs.some(({ id }) => id === songId);
-            if (isSongAlreadyExist) {
-                formattedSongs = formattedSongs.map((song) => (Object.assign(Object.assign({}, song), { users: song.id === songId
-                        ? song.users.concat(formattedSong.users.filter((user) => !song.users.includes(user)))
-                        : song.users })));
-                return;
-            }
-            const sameLocalSong = localSongs.find((localSong) => areSongsEqual(formattedSong, localSong));
-            if (!!sameLocalSong) {
-                formattedSong.users.push(...sameLocalSong.users.filter((user) => !formattedSong.users.includes(user)));
-                formattedSong.isHeard = sameLocalSong.isHeard;
-            }
-            formattedSongs.push(formattedSong);
-        }
-        catch (error) {
-            return;
-        }
-    });
-    return formattedSongs;
-};
-const getSongsUsers = (songs, localUsers) => {
-    const songsUsers = songs.reduce((users, song) => {
-        const addedUsers = song.users.filter((user) => !users.includes(user));
-        return [...users, ...addedUsers];
-    }, []);
-    return songsUsers.map((user) => {
-        const sameLocalUser = localUsers.find((localUser) => localUser.name === user);
-        return {
-            name: user,
-            isChecked: !sameLocalUser || sameLocalUser.isChecked,
-            nickname: !!sameLocalUser ? sameLocalUser.nickname : user,
-        };
-    });
-};
-const isSongSkipable = (video, videoDuration) => !!video && videoDuration > video.currentTime + 5;
-const isSongHeard = (video, videoDuration) => !!video && videoDuration < video.currentTime + 4;
-const isSongUserChecked = (users, currSong) => users.some((user) => user.isChecked && currSong.users.includes(user.name));
-const formatUsers = (usernames, users) => users.map((user) => (Object.assign(Object.assign({}, user), { isChecked: usernames.includes(user.name) })));
 
 const rerenderPlaylistImage = () => {
     var _a;

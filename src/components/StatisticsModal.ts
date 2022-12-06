@@ -3,6 +3,7 @@ import { Song } from 'types/song';
 import { User } from 'types/user';
 import { Modal } from './Modal';
 import { mode, uniq } from '../functions/generic-use';
+import { getTotalSongsTime } from '../functions';
 
 export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
   const modal = Modal('75vh', '80%', id);
@@ -134,7 +135,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         songsQuantity.style.fontSize = '18px';
         songsQuantity.style.textAlign = 'left';
         songsQuantity.style.fontWeight = '500';
-        songsQuantity.innerText = 'Songs Quantity';
+        songsQuantity.innerText = 'Songs Quantity (Len)';
         songsQuantity.classList.add('clickable');
         songsQuantity.classList.add(currUsersSort === 4 ? 'sorted-row-header-asc' : currUsersSort === 5 ? 'sorted-row-header-desc' : 'sortable-row-header');
         songsQuantity.addEventListener('click', () => {
@@ -153,7 +154,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         heardSongsQuantity.style.fontSize = '18px';
         heardSongsQuantity.style.textAlign = 'left';
         heardSongsQuantity.style.fontWeight = '500';
-        heardSongsQuantity.innerText = 'Played Songs Quantity';
+        heardSongsQuantity.innerText = 'Played Songs Quantity (Len)';
         heardSongsQuantity.classList.add('clickable');
         heardSongsQuantity.classList.add(currUsersSort === 6 ? 'sorted-row-header-asc' : currUsersSort === 7 ? 'sorted-row-header-desc' : 'sortable-row-header');
         heardSongsQuantity.addEventListener('click', () => {
@@ -199,6 +200,16 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
           const songsQuantity: number = userSongs.length;
           const heardSongs = userSongs.filter((song) => song.isHeard);
           const heardSongsQuantity: number = userSongs.filter((song) => song.isHeard).length;
+          const {
+            totalHours: totalSongsHours,
+            totalMinutes: totalSongsMinutes,
+            totalSeconds: totalSongsSeconds,
+          } = getTotalSongsTime(userSongs);
+          const {
+            totalHours: totalHeardSongsHours,
+            totalMinutes: totalHeardSongsMinutes,
+            totalSeconds: totalHeardSongsSeconds,
+          } = getTotalSongsTime(heardSongs);
           const userArtists: string[] = userSongs.map((song) => song.artist);
           const favoriteArtist = mode(userArtists);
           const favoriteArtistSongQuantity = userArtists.filter(artist => artist === favoriteArtist).length;
@@ -225,13 +236,13 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
           songsQuantityElem.style.color = 'white';
           songsQuantityElem.style.fontSize = '18px';
           songsQuantityElem.style.textAlign = 'left';
-          songsQuantityElem.innerText = `${songsQuantity} songs`;
+          songsQuantityElem.innerText = `${songsQuantity} songs (${totalSongsHours}h, ${totalSongsMinutes}m, ${totalSongsSeconds}s)`;
 
           heardSongsQuantityElem.style.width = '20%';
           heardSongsQuantityElem.style.color = 'white';
           heardSongsQuantityElem.style.fontSize = '18px';
           heardSongsQuantityElem.style.textAlign = 'left';
-          heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs`;
+          heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs (${totalHeardSongsHours}h, ${totalHeardSongsMinutes}m, ${totalHeardSongsSeconds}s)`;
 
           favoriteArtistElem.style.width = '20%';
           favoriteArtistElem.style.color = 'white';
@@ -309,7 +320,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         songsQuantity.style.fontSize = '18px';
         songsQuantity.style.textAlign = 'left';
         songsQuantity.style.fontWeight = '500';
-        songsQuantity.innerText = 'Songs Quantity';
+        songsQuantity.innerText = 'Songs Quantity (Len)';
         songsQuantity.classList.add('clickable');
         songsQuantity.classList.add(currArtistsSort === 2 ? 'sorted-row-header-asc' : currArtistsSort === 3 ? 'sorted-row-header-desc' : 'sortable-row-header');
         songsQuantity.addEventListener('click', () => {
@@ -327,7 +338,7 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
         heardSongsQuantity.style.fontSize = '18px';
         heardSongsQuantity.style.textAlign = 'left';
         heardSongsQuantity.style.fontWeight = '500';
-        heardSongsQuantity.innerText = 'Played Songs Quantity';
+        heardSongsQuantity.innerText = 'Played Songs Quantity (Len)';
         heardSongsQuantity.classList.add('clickable');
         heardSongsQuantity.classList.add(currArtistsSort === 4 ? 'sorted-row-header-asc' : currArtistsSort === 5 ? 'sorted-row-header-desc' : 'sortable-row-header');
         heardSongsQuantity.addEventListener('click', () => {
@@ -357,8 +368,21 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
           const heardSongsQuantityElem: HTMLDivElement = document.createElement('div');
           const breakLine: HTMLHRElement = document.createElement('hr');
 
+
+          const heardSongs = artist.songs.filter((song) => song.isHeard);
           const songsQuantity: number = artist.songs.length;
-          const heardSongsQuantity: number = artist.songs.filter((song) => song.isHeard).length;
+          const heardSongsQuantity: number = heardSongs.length;
+          const {
+            totalHours: totalSongsHours,
+            totalMinutes: totalSongsMinutes,
+            totalSeconds: totalSongsSeconds,
+          } = getTotalSongsTime(artist.songs);
+          const {
+            totalHours: totalHeardSongsHours,
+            totalMinutes: totalHeardSongsMinutes,
+            totalSeconds: totalHeardSongsSeconds,
+          } = getTotalSongsTime(heardSongs);
+
 
           row.style.width = '100%';
           row.style.display = 'flex';
@@ -375,13 +399,13 @@ export const StatisticsModal = (id: string, localPlaylist: Playlist) => {
           songsQuantityElem.style.color = 'white';
           songsQuantityElem.style.fontSize = '18px';
           songsQuantityElem.style.textAlign = 'left';
-          songsQuantityElem.innerText = `${songsQuantity} songs`;
+          songsQuantityElem.innerText = `${songsQuantity} songs (${totalSongsHours}h, ${totalSongsMinutes}m, ${totalSongsSeconds}s)`;
 
           heardSongsQuantityElem.style.width = '20%';
           heardSongsQuantityElem.style.color = 'white';
           heardSongsQuantityElem.style.fontSize = '18px';
           heardSongsQuantityElem.style.textAlign = 'left';
-          heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs`;
+          heardSongsQuantityElem.innerText = `${heardSongsQuantity} songs (${totalHeardSongsHours}h, ${totalHeardSongsMinutes}m, ${totalHeardSongsSeconds}s)`;
 
           breakLine.style.backgroundColor = '#3c3c3c';
           breakLine.style.height = '1px';
