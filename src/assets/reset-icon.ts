@@ -1,6 +1,6 @@
 export const resetIcon = `
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 26 26" style="enable-background:new 0 0 26 26;" xml:space="preserve">
+<svg width="24px" height="24px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 26 26" style="enable-background:new 0 0 26 26;" xml:space="preserve" filter='invert(100%) sepia(100%) saturate(100%)'>
 <g>
 	<path style="fill:#030104;" d="M15.086,20.626c-0.146,0.253-0.266,0.497-0.366,0.746C14.156,22.761,12.837,26,8.954,26
 		c-3.542,0-4.642-3.665-4.642-5c0-0.553,0.448-1,1-1s1,0.447,1,1c0,0.03,0.28,3,2.642,3c2.113,0,3.063-1.292,3.913-3.377

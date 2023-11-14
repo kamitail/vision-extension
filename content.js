@@ -48,8 +48,8 @@ const editIcon = `<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/
 </svg>`;
 
 const resetIcon = `
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 26 26" style="enable-background:new 0 0 26 26;" xml:space="preserve">
+<svg width="24px" height="24px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 26 26" style="enable-background:new 0 0 26 26;" xml:space="preserve" filter='invert(100%) sepia(100%) saturate(100%)'>
 <g>
 	<path style="fill:#030104;" d="M15.086,20.626c-0.146,0.253-0.266,0.497-0.366,0.746C14.156,22.761,12.837,26,8.954,26
 		c-3.542,0-4.642-3.665-4.642-5c0-0.553,0.448-1,1-1s1,0.447,1,1c0,0.03,0.28,3,2.642,3c2.113,0,3.063-1.292,3.913-3.377
@@ -97,7 +97,7 @@ const resetIcon = `
 `;
 
 const statisticsIcon = `
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+<svg width="24px" height="24px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 294 294" style="enable-background:new 0 0 294 294;" xml:space="preserve">
 <g>
 	<path d="M279,250H15c-8.284,0-15,6.716-15,15s6.716,15,15,15h264c8.284,0,15-6.716,15-15S287.284,250,279,250z"/>
@@ -141,11 +141,11 @@ const statisticsIcon = `
 </svg>`;
 
 const syncIcon = `
-<svg width="28px" height="28px" viewBox="0 -2 28 28" xmlns="http://www.w3.org/2000/svg"><path d="m27.994 14.729c-.012.267-.365.566-1.091.945-1.495.778-9.236 3.967-10.883 4.821-.589.419-1.324.67-2.116.67-.641 0-1.243-.164-1.768-.452l.019.01c-1.304-.622-9.539-3.95-11.023-4.659-.741-.35-1.119-.653-1.132-.933v2.83c0 .282.39.583 1.132.933 1.484.709 9.722 4.037 11.023 4.659.504.277 1.105.44 1.744.44.795 0 1.531-.252 2.132-.681l-.011.008c1.647-.859 9.388-4.041 10.883-4.821.76-.396 1.096-.7 1.096-.982s0-2.791 0-2.791z"/><path d="m27.992 10.115c-.013.267-.365.565-1.09.944-1.495.778-9.236 3.967-10.883 4.821-.59.421-1.326.672-2.121.672-.639 0-1.24-.163-1.763-.449l.019.01c-1.304-.627-9.539-3.955-11.023-4.664-.741-.35-1.119-.653-1.132-.933v2.83c0 .282.39.583 1.132.933 1.484.709 9.721 4.037 11.023 4.659.506.278 1.108.442 1.749.442.793 0 1.527-.251 2.128-.677l-.011.008c1.647-.859 9.388-4.043 10.883-4.821.76-.397 1.096-.7 1.096-.984s0-2.791 0-2.791z"/><path d="m27.992 5.329c.014-.285-.358-.534-1.107-.81-1.451-.533-9.152-3.596-10.624-4.136-.528-.242-1.144-.383-1.794-.383-.734 0-1.426.18-2.035.498l.024-.012c-1.731.622-9.924 3.835-11.381 4.405-.729.287-1.086.552-1.073.834v2.83c0 .282.39.583 1.132.933 1.484.709 9.721 4.038 11.023 4.66.504.277 1.105.439 1.744.439.795 0 1.531-.252 2.133-.68l-.011.008c1.647-.859 9.388-4.043 10.883-4.821.76-.397 1.096-.7 1.096-.984s0-2.791 0-2.791h-.009zm-17.967 2.684 6.488-.996-1.96 2.874zm14.351-2.588-4.253 1.68-3.835-1.523 4.246-1.679 3.838 1.517zm-11.265-2.785-.628-1.157 1.958.765 1.846-.604-.499 1.196 1.881.7-2.426.252-.543 1.311-.879-1.457-2.8-.252 2.091-.754zm-4.827 1.632c1.916 0 3.467.602 3.467 1.344s-1.559 1.344-3.467 1.344-3.474-.603-3.474-1.344 1.553-1.344 3.474-1.344z"/></svg>
+<svg width="24px" height="24px" viewBox="0 -2 28 28" xmlns="http://www.w3.org/2000/svg"><path d="m27.994 14.729c-.012.267-.365.566-1.091.945-1.495.778-9.236 3.967-10.883 4.821-.589.419-1.324.67-2.116.67-.641 0-1.243-.164-1.768-.452l.019.01c-1.304-.622-9.539-3.95-11.023-4.659-.741-.35-1.119-.653-1.132-.933v2.83c0 .282.39.583 1.132.933 1.484.709 9.722 4.037 11.023 4.659.504.277 1.105.44 1.744.44.795 0 1.531-.252 2.132-.681l-.011.008c1.647-.859 9.388-4.041 10.883-4.821.76-.396 1.096-.7 1.096-.982s0-2.791 0-2.791z"/><path d="m27.992 10.115c-.013.267-.365.565-1.09.944-1.495.778-9.236 3.967-10.883 4.821-.59.421-1.326.672-2.121.672-.639 0-1.24-.163-1.763-.449l.019.01c-1.304-.627-9.539-3.955-11.023-4.664-.741-.35-1.119-.653-1.132-.933v2.83c0 .282.39.583 1.132.933 1.484.709 9.721 4.037 11.023 4.659.506.278 1.108.442 1.749.442.793 0 1.527-.251 2.128-.677l-.011.008c1.647-.859 9.388-4.043 10.883-4.821.76-.397 1.096-.7 1.096-.984s0-2.791 0-2.791z"/><path d="m27.992 5.329c.014-.285-.358-.534-1.107-.81-1.451-.533-9.152-3.596-10.624-4.136-.528-.242-1.144-.383-1.794-.383-.734 0-1.426.18-2.035.498l.024-.012c-1.731.622-9.924 3.835-11.381 4.405-.729.287-1.086.552-1.073.834v2.83c0 .282.39.583 1.132.933 1.484.709 9.721 4.038 11.023 4.66.504.277 1.105.439 1.744.439.795 0 1.531-.252 2.133-.68l-.011.008c1.647-.859 9.388-4.043 10.883-4.821.76-.397 1.096-.7 1.096-.984s0-2.791 0-2.791h-.009zm-17.967 2.684 6.488-.996-1.96 2.874zm14.351-2.588-4.253 1.68-3.835-1.523 4.246-1.679 3.838 1.517zm-11.265-2.785-.628-1.157 1.958.765 1.846-.604-.499 1.196 1.881.7-2.426.252-.543 1.311-.879-1.457-2.8-.252 2.091-.754zm-4.827 1.632c1.916 0 3.467.602 3.467 1.344s-1.559 1.344-3.467 1.344-3.474-.603-3.474-1.344 1.553-1.344 3.474-1.344z"/></svg>
 `;
 
 const usersIcon = `
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+<svg width="24px" height="24px" version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
 	 viewBox="0 0 60 60" style="enable-background:new 0 0 60 60;" xml:space="preserve">
 <g>
 	<path d="M41.014,45.389l-9.553-4.776C30.56,40.162,30,39.256,30,38.248v-3.381c0.229-0.28,0.47-0.599,0.719-0.951
@@ -1058,33 +1058,178 @@ const FloatButton = (id, clickAction) => {
     return floatButton;
 };
 
-const StyledButton = (id, buttonText, clickAction, icon) => {
+// export const StyledButton = (id: string, buttonText: string, clickAction: (ev: MouseEvent) => any, icon: string) => {
+//   const button = document.createElement('button');
+//   button.style.height = '36px';
+//   button.style.maxWidth = '100%';
+//   button.style.display = 'flex';
+//   button.style.flexBasis = '20%';
+//   button.style.alignItems = 'center';
+//   button.style.fontSize = '14px';
+//   button.style.fontWeight = '500';
+//   button.style.fontFamily = 'Roboto,Noto Naskh Arabic UI,Arial,sans-serif';
+//   button.style.justifyContent = 'center';
+//   button.style.backgroundColor = 'red';
+//   button.style.border = '1px solid #aaa';
+//   button.style.color = 'white';
+//   button.style.padding = '0.7em 1.25em 0.7em 0.7em';
+//   button.style.borderRadius = '18px';
+//   button.style.boxSizing = 'border-box';
+//   button.style.whiteSpace = 'nowrap';
+//   button.innerHTML = icon;
+//   button.addEventListener('click', clickAction);
+//   button.id = id;
+//
+//   const textBox = document.createElement('span');
+//   textBox.style.whiteSpace = 'nowrap';
+//   textBox.style.overflow = 'hidden';
+//   textBox.style.textOverflow = 'ellipsis';
+//   textBox.innerHTML += buttonText;
+//
+//
+//   const buttonIcon: SVGSVGElement = button.querySelector('svg')!;
+//   buttonIcon.style.marginRight = '7px';
+//   buttonIcon.style.height = '25px';
+//   buttonIcon.style.width = '20px';
+//   buttonIcon.style.filter = 'invert(100%) sepia(100%) saturate(100%)';
+//
+//   button.appendChild(textBox)
+//
+//   return button;
+// };
+//
+// Create the necessary elements
+const StyledButton = (id, buttonText, clickAction, iconPath) => {
     const button = document.createElement('button');
-    button.style.height = '36px';
-    button.style.display = 'flex';
-    button.style.alignItems = 'center';
-    button.style.fontSize = '14px';
-    button.style.fontWeight = '500';
-    button.style.fontFamily = 'Roboto,Noto Naskh Arabic UI,Arial,sans-serif';
-    button.style.justifyContent = 'center';
+    button.className = 'yt-spec-button-shape-next yt-spec-button-shape-next--outline yt-spec-button-shape-next--mono yt-spec-button-shape-next--size-m yt-spec-button-shape-next--icon-leading';
     button.style.backgroundColor = 'red';
-    button.style.border = '1px solid #aaa';
-    button.style.color = 'white';
-    button.style.padding = '0.7em 1.25em 0.7em 0.7em';
-    button.style.borderRadius = '2px';
-    button.style.boxSizing = 'border-box';
-    button.style.whiteSpace = 'nowrap';
-    button.innerHTML = icon;
-    button.innerHTML += buttonText;
-    button.addEventListener('click', clickAction);
     button.id = id;
-    const buttonIcon = button.querySelector('svg');
-    buttonIcon.style.marginRight = '7px';
-    buttonIcon.style.height = '25px';
-    buttonIcon.style.width = '20px';
-    buttonIcon.style.filter = 'invert(100%) sepia(100%) saturate(100%)';
+    button.addEventListener('click', clickAction);
+    button.setAttribute('aria-label', 'Edit playlist');
+    const buttonTextElement = document.createElement('span');
+    buttonTextElement.className = 'yt-core-attributed-string yt-core-attributed-string--white-space-no-wrap';
+    buttonTextElement.setAttribute('role', 'text');
+    buttonTextElement.textContent = buttonText;
+    const iconElement = document.createElement('svg');
+    iconElement.setAttribute('viewBox', '0 0 24 24');
+    iconElement.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+    iconElement.setAttribute('focusable', 'false');
+    iconElement.className = 'style-scope yt-icon';
+    const path = document.createElement('path');
+    path.innerHTML = iconPath;
+    path.className = 'style-scope yt-icon';
+    iconElement.appendChild(path);
+    const iconContainer = document.createElement('div');
+    iconContainer.className = 'yt-spec-button-shape-next__icon';
+    iconContainer.setAttribute('aria-hidden', 'true');
+    iconContainer.appendChild(iconElement);
+    const buttonContent = document.createElement('div');
+    buttonContent.className = 'yt-spec-button-shape-next__button-text-content';
+    buttonContent.appendChild(buttonTextElement);
+    const touchFeedback = document.createElement('div');
+    touchFeedback.className = 'yt-spec-touch-feedback-shape yt-spec-touch-feedback-shape--touch-response';
+    touchFeedback.setAttribute('aria-hidden', 'true');
+    touchFeedback.innerHTML = '<div class="yt-spec-touch-feedback-shape__stroke" style=""></div><div class="yt-spec-touch-feedback-shape__fill" style=""></div>';
+    const touchFeedbackShape = document.createElement('yt-touch-feedback-shape');
+    touchFeedbackShape.style.borderRadius = 'inherit';
+    touchFeedbackShape.appendChild(touchFeedback);
+    const paperTooltip = document.createElement('tp-yt-paper-tooltip');
+    paperTooltip.setAttribute('fit-to-visible-bounds', '');
+    paperTooltip.setAttribute('offset', '8');
+    paperTooltip.setAttribute('disable-upgrade', '');
+    // Construct the button hierarchy
+    button.appendChild(iconContainer);
+    button.appendChild(buttonContent);
+    button.appendChild(touchFeedbackShape);
+    button.appendChild(paperTooltip);
     return button;
 };
+// export const StyledButton = (id: string, buttonText: string, clickAction: (ev: MouseEvent) => any, icon: string) => {
+//   const button = document.createElement('button');
+//   button.classList.add('yt-spec-button-shape-next');
+//   button.classList.add('yt-spec-button-shape-next--outline');
+//   button.classList.add('yt-spec-button-shape-next--mono');
+//   button.classList.add('yt-spec-button-shape-next--size-m');
+//   button.classList.add('yt-spec-button-shape-next--icon-leading');
+//   button.setAttribute('aria-label', buttonText);
+//   button.style.height = '36px';
+//   button.style.maxWidth = '100%';
+//   button.style.display = 'flex';
+//   button.style.flexBasis = '20%';
+//   button.style.alignItems = 'center';
+//   button.style.fontSize = '14px';
+//   button.style.fontWeight = '500';
+//   button.style.fontFamily = 'Roboto,Noto Naskh Arabic UI,Arial,sans-serif';
+//   button.style.justifyContent = 'center';
+//   button.style.backgroundColor = 'red';
+//   button.style.border = '1px solid #aaa';
+//   button.style.color = 'white';
+//   button.style.padding = '0.7em 1.25em 0.7em 0.7em';
+//   button.style.borderRadius = '18px';
+//   button.style.boxSizing = 'border-box';
+//   button.style.whiteSpace = 'nowrap';
+//
+//   const iconDiv = document.createElement('div');
+//   iconDiv.classList.add('yt-spec-button-shape-next__icon');
+//   iconDiv.style.width = '24px';
+//   iconDiv.style.height = '24px';
+//   iconDiv.setAttribute('aria-hidden', 'true');
+//   iconDiv.innerHTML = icon;
+//
+//   const buttonTextSpan = document.createElement('span');
+//   buttonTextSpan.classList.add('yt-core-attributed-string');
+//   buttonTextSpan.classList.add('yt-core-attributed-string--white-space-no-wrap');
+//   buttonTextSpan.classList.add('yt-core-attributed-string--ellipsis');
+//   buttonTextSpan.setAttribute('role', 'text');
+//   buttonTextSpan.innerHTML = buttonText;
+//
+//   button.appendChild(iconDiv);
+//   button.appendChild(buttonTextSpan);
+//
+//   button.addEventListener('click', clickAction);
+//   button.id = id;
+// return button;};
+// export const StyledButton = (id: string, buttonText: string, clickAction: (ev: MouseEvent) => any, icon: string) => {
+//   const button = document.createElement('button');
+//   button.style.height = '36px';
+//   button.style.maxWidth = '100%';
+//   button.style.display = 'flex';
+//   button.style.flexBasis = '20%';
+//   button.style.alignItems = 'center';
+//   button.style.fontSize = '14px';
+//   button.style.fontWeight = '500';
+//   button.style.fontFamily = 'Roboto, Noto Naskh Arabic UI, Arial, sans-serif';
+//   button.style.justifyContent = 'center';
+//   button.style.backgroundColor = 'red';
+//   button.style.border = '1px solid #aaa';
+//   button.style.color = 'white';
+//   button.style.padding = '0.7em 1.25em 0.7em 0.7em';
+//   button.style.borderRadius = '18px';
+//   button.style.boxSizing = 'border-box';
+//   button.style.whiteSpace = 'nowrap';
+//   button.id = id;
+//
+//   const buttonTextSpan = document.createElement('span');
+//   buttonTextSpan.style.whiteSpace = 'nowrap';
+//   buttonTextSpan.style.overflow = 'hidden';
+//   buttonTextSpan.style.textOverflow = 'ellipsis';
+//   buttonTextSpan.textContent = buttonText;
+//
+//   const iconContainer = document.createElement('div');
+//   iconContainer.innerHTML = icon;
+//
+//   const buttonIcon = iconContainer.querySelector('svg');
+//   if (buttonIcon) {
+//     buttonIcon.setAttribute('style', 'margin-right: 7px; height: 25px; width: 20px; filter: invert(100%) sepia(100%) saturate(100%);');
+//   }
+//
+//   button.appendChild(iconContainer);
+//   button.appendChild(buttonTextSpan);
+//
+//   button.addEventListener('click', clickAction);
+//
+//   return button;
+// };
 
 const rerenderPlaylistImage = () => {
     var _a;
